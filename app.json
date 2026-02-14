@@ -1,8 +1,8 @@
 {
   "id": "b16e95bb-8efa-46b5-aadd-330ca773ca35",
   "name": "AL_Basic",
-  "publisher": "Default Publisher",
-  "version": "1.0.0.0",
+  "publisher": "CDE",
+  "version": "27.2026.02.0",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -16,8 +16,8 @@
   "application": "27.0.0.0",
   "idRanges": [
     {
-      "from": 50100,
-      "to": 50149
+      "from": 50000,
+      "to": 50010
     }
   ],
   "resourceExposurePolicy": {
@@ -27,6 +27,6 @@
   },
   "runtime": "16.0",
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith","TranslationFile"
   ]
 }
