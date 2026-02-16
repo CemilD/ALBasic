@@ -1,0 +1,59 @@
+table 50000 CDEKVPTableMyTable
+{
+
+    fields
+    {
+        field(1; KVPid; Code[20])
+        {
+            DataClassification = ToBeClassified;
+
+        }
+        field(2; Subject; Text[2048])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(3; Body; Blob)
+        {
+            DataClassification = CustomerContent;
+        }
+        field(4; Editable; Boolean)
+        {
+            InitValue = true;
+            Access = Internal;
+            DataClassification = SystemMetadata;
+        }
+        field(5; "HTML Formatted Body"; Boolean)
+        {
+            Access = Internal;
+            DataClassification = SystemMetadata;
+            InitValue = true;
+        }
+        field(6; "No. of Modifies"; Integer)
+        {
+            Access = Internal;
+            InitValue = 0;
+            DataClassification = SystemMetadata;
+        }
+        field(7; "External Id"; Text[2048])
+        {
+            Access = Internal;
+            DataClassification = CustomerContent;
+        }
+        field(8; "Owner"; Code[20])
+        {
+            Access = Internal;
+            DataClassification = CustomerContent;
+            TableRelation = Resource;
+        }
+
+    }
+
+    keys
+    {
+        key(Key1; KVPid)
+        {
+            Clustered = true;
+        }
+    }
+
+}
