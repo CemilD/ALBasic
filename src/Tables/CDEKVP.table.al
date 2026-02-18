@@ -70,5 +70,4 @@ table 50000 CDEKVPTableMyTable
             Clustered = true;
         }
     }
-
 }
