@@ -6,15 +6,16 @@ table 50000 CDEKVPTableMyTable
         field(1; KVPid; Code[20])
         {
             DataClassification = ToBeClassified;
-
         }
         field(2; Subject; Text[2048])
         {
             DataClassification = CustomerContent;
+            Caption = 'Betreff', Comment = 'DEU=Betreff';
         }
         field(3; Body; Blob)
         {
             DataClassification = CustomerContent;
+            Caption = 'Inhalt', Comment = 'DEU=Inhalt';
         }
         field(4; Editable; Boolean)
         {
@@ -43,14 +44,28 @@ table 50000 CDEKVPTableMyTable
         {
             Access = Internal;
             DataClassification = CustomerContent;
-            TableRelation = Resource;
+            TableRelation = User."User Name";
+            Caption = 'Submitted By', Comment = 'DEU= Eingereicht durch';
         }
-
+        field(9; SourceNo; Code[20])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Fertigungsauftragsnr.', Comment = 'DEU=Fertigungsauftragsnr.';
+        }
+        field(10; ItemNo; Code[20])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Artikelnummer', Comment = 'DEU=Artikelnummer';
+        }
+        field(11; ItemDescription; Text[100])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Artikelbeschreibung', Comment = 'DEU=Artikelbeschreibung';
+        }
     }
-
     keys
     {
-        key(Key1; KVPid)
+        key(Key1; KVPid, ItemNo)
         {
             Clustered = true;
         }

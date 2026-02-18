@@ -12,6 +12,12 @@ page 50001 cdeKVPCard
             {
                 ShowCaption = false;
                 Caption = ' ';
+                field("Production Order No."; Rec.SourceNo)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the production order number.';
+                    Editable = false;
+                }
                 field(Subject; Rec.Subject)
                 {
                     ApplicationArea = All;
@@ -28,7 +34,22 @@ page 50001 cdeKVPCard
                 }
 
             }
-            group(KVPText)
+            group(Artikel)
+            {
+                field("Item No."; Rec.ItemNo)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the item number.';
+                    Editable = false;
+                }
+                field("Item Description"; Rec.ItemDescription)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the item description.';
+                    Editable = false;
+                }
+            }
+            group(KVP)
             {
                 field("KVP Editor"; BodyText)
                 {

@@ -14,9 +14,9 @@ page 50000 cdeKVPList
             repeater(GroupName)
             {
 
-                field(Body; Rec.Body)
+                field(KVPid; Rec.KVPid)
                 {
-                    ToolTip = 'Specifies the value of the Body field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the KVPid field.', Comment = '%';
                 }
                 field(Owner; Rec.Owner)
                 {
