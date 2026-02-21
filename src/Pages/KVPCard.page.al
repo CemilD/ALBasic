@@ -68,6 +68,7 @@ page 50001 cdeKVPCard
     trigger OnAfterGetCurrRecord()
     begin
         BodyText := cdeKVPMgt.GetBodyText(Rec);
+        CurrPage.Update(false);
     end;
 
     var

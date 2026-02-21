@@ -82,4 +82,16 @@ table 50000 CDEKVPTableMyTable
             Clustered = true;
         }
     }
+    trigger OnInsert()
+    var
+        NoSeries: Codeunit "No. Series";
+        KVPseriesCode: Code[20];
+    begin
+        KVPseriesCode := 'KVP';
+
+        if KVPid = '' then begin
+            //NoSeriesRecord.Get();
+            KVPid := NoSeries.GetNextNo(KVPseriesCode);
+        end;
+    end;
 }
