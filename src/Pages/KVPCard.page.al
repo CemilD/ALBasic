@@ -16,7 +16,6 @@ page 50001 cdeKVPCard
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the production order number.';
-                    Editable = false;
                 }
                 field(Subject; Rec.Subject)
                 {
@@ -40,13 +39,11 @@ page 50001 cdeKVPCard
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the item number.';
-                    Editable = false;
                 }
                 field("Item Description"; Rec.ItemDescription)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the item description.';
-                    Editable = false;
                 }
             }
             group(KVP)

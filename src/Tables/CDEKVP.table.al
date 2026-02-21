@@ -45,6 +45,7 @@ table 50000 CDEKVPTableMyTable
             Access = Internal;
             DataClassification = CustomerContent;
             TableRelation = User."User Name";
+            ValidateTableRelation = false;
             Caption = 'Submitted By', Comment = 'DEU= Eingereicht durch';
         }
         field(9; SourceNo; Code[20])
@@ -56,6 +57,17 @@ table 50000 CDEKVPTableMyTable
         {
             DataClassification = CustomerContent;
             Caption = 'Artikelnummer', Comment = 'DEU=Artikelnummer';
+            TableRelation = Item."No.";
+
+            trigger OnValidate()
+            var
+                Item: Record Item;
+            begin
+                if ItemNo <> '' then begin
+                    if Item.Get(ItemNo) then
+                        ItemDescription := Item.Description
+                end
+            end;
         }
         field(11; ItemDescription; Text[100])
         {
