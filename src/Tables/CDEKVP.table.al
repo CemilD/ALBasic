@@ -1,5 +1,8 @@
 table 50000 CDEKVPTableMyTable
 {
+    Caption = 'KVP Table';
+    DataCaptionFields = KVPid, Subject;
+    DrillDownPageId = cdeKVPList;
 
     fields
     {
