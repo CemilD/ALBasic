@@ -1,16 +1,6 @@
 {
-    "workbench.colorCustomizations": {
-        "activityBar.foreground": "#FFA7AC",
-        "activityBar.background": "#180001",
-        "activityBar.inactiveForeground": "#901B4D",
-        "activityBarBadge.foreground": "#000000",
-        "activityBarBadge.background": "#D3A23B",
-        "statusBar.foreground": "#FFD7E2",
-        "statusBar.background": "#A73554",
-        "statusBarItem.hoverBackground": "#6D332A",
-        "statusBarItem.remoteForeground": "#FFD2A7",
-        "statusBarItem.remoteBackground": "#8B4F15",
-        "statusBar.debuggingForeground": "#210009",
-        "statusBar.debuggingBackground": "#DD6C8A"
-    }
+  "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+  "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+  "CRS.FileNamePatternPageCustomizations": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+  "CRS.ObjectNamePrefix": "CDE"
 }
