@@ -97,18 +97,16 @@ report 50000 CDEReleasedProdOrderDoc
                 {
                     Caption = 'Starting Date', Comment = 'Deu = "Beginnt am"';
                 }
+
+                trigger OnAfterGetRecord()
+                begin
+                    QRCodeRoutingLine := GenerateQRCode(ProdOrderRoutingLine."Routing No.");
+                end;
             }
             trigger OnAfterGetRecord()
-            var
-                ProdOderRoutingLine: Record "Prod. Order Routing Line";
             begin
-                ProdORderRoutingLine.SetRange(Status, Status::Released);
-                ProdORderRoutingLine.SetRange("Prod. Order No.", "No.");
-                if ProdORderRoutingLine.IsEmpty() then
-                    CurrReport.Skip();
-
-                //QR Code will be generated 
-                QRCodeGenerater();
+                ProcessProductionOrderHeader();
+                QRprodOrderNo := GenerateQRCode(ProductionOrder."No.");
             end;
 
             trigger OnPreDataItem()
@@ -119,6 +117,7 @@ report 50000 CDEReleasedProdOrderDoc
     }
     requestpage
     {
+        SaveValues = true;
         AboutTitle = 'About Prod. Order - Job Card';
         AboutText = 'Details out the components and capacity required to fulfil a Production Order. Use it to provide a printable report that your team can use to execute the manufacturing job.';
 
@@ -140,34 +139,25 @@ report 50000 CDEReleasedProdOrderDoc
         }
     }
 
-    local procedure joinStringLines(): Text
+    local procedure ProcessProductionOrderHeader()
+    var
+        ProdOderRoutingLine: Record "Prod. Order Routing Line";
     begin
-        // Format: "<FA-Nr.><Separator><Routing-Nr.>"
-        // Zum Splitten: Text.Split(GetSeparator()) verwenden
-        exit(StrSubstNo('%1%2%3', ProductionOrder."No.", GetSeparator(), ProdOrderRoutingLine."Routing No."));
+        // FA überspringen wenn keine freigegebenen Arbeitspläne vorhanden
+        ProdOderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Status, ProdOderRoutingLine.Status::Released);
+        if ProdOderRoutingLine.IsEmpty() then
+            CurrReport.Skip();
     end;
 
-    local procedure GetSeparator(): Text
-    begin
-        exit('#'); // Trennzeichen – hier ändern falls nötig
-    end;
-
-    local procedure QRCodeGenerater()
+    local procedure GenerateQRCode(InputText: Text): Text
     var
         BarcodeSmybology2D: Enum "Barcode Symbology 2D";
         BarcodeFrontPovider: Interface "Barcode Font Provider 2D";
-        QRCodeStrNo: Text;
-        QRCodeStrRoutingLine: Text;
     begin
         BarcodeSmybology2D := Enum::"Barcode Symbology 2D"::"QR-Code";
         BarcodeFrontPovider := Enum::"Barcode Font Provider 2D"::IDAutomation2D;
-        QRCodeStrNo := ProductionOrder."No.";
-        QRCodeStrRoutingLine := ProdOrderRoutingLine."Routing No.";
-
-        QRprodOrderNo := BarcodeFrontPovider.EncodeFont(QRCodeStrNo, BarcodeSmybology2D);
-        // QRCodeRoutingLine := BarcodeFrontPovider.EncodeFont(QRCodeStrRoutingLine, BarcodeSmybology2D);
-
-
+        exit(BarcodeFrontPovider.EncodeFont(InputText, BarcodeSmybology2D));
     end;
 
     var

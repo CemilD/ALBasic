@@ -10,79 +10,6 @@
       <rd:DataSourceID>d865f3a5-d9ce-43f2-b0c3-9390e7cd8443</rd:DataSourceID>
     </DataSource>
   </DataSources>
-  <DataSets>
-    <DataSet Name="DataSet_Result">
-      <Query>
-        <DataSourceName>DataSource</DataSourceName>
-        <CommandText />
-      </Query>
-      <Fields>
-        <Field Name="StatusProdOrder">
-          <DataField>StatusProdOrder</DataField>
-        </Field>
-        <Field Name="prodOrderNoCount">
-          <DataField>prodOrderNoCount</DataField>
-        </Field>
-        <Field Name="NoProdOrder">
-          <DataField>NoProdOrder</DataField>
-        </Field>
-        <Field Name="QRProdOrderNo">
-          <DataField>QRProdOrderNo</DataField>
-        </Field>
-        <Field Name="CommentProductionOrder">
-          <DataField>CommentProductionOrder</DataField>
-        </Field>
-        <Field Name="DueDateProductionOrder">
-          <DataField>DueDateProductionOrder</DataField>
-        </Field>
-        <Field Name="TodayFormatted">
-          <DataField>TodayFormatted</DataField>
-        </Field>
-        <Field Name="CompanyName">
-          <DataField>CompanyName</DataField>
-        </Field>
-        <Field Name="ProdOrderTableCaptionFilt">
-          <DataField>ProdOrderTableCaptionFilt</DataField>
-        </Field>
-        <Field Name="ProdOrderFilter">
-          <DataField>ProdOrderFilter</DataField>
-        </Field>
-        <Field Name="Description">
-          <DataField>Description</DataField>
-        </Field>
-        <Field Name="ProdRoutingLineCount">
-          <DataField>ProdRoutingLineCount</DataField>
-        </Field>
-        <Field Name="EndingDate_ProdOrderRoutingLine">
-          <DataField>EndingDate_ProdOrderRoutingLine</DataField>
-        </Field>
-        <Field Name="EndingTime_ProdOrderRoutingLine">
-          <DataField>EndingTime_ProdOrderRoutingLine</DataField>
-        </Field>
-        <Field Name="LocationCode_ProdOrderRoutingLine">
-          <DataField>LocationCode_ProdOrderRoutingLine</DataField>
-        </Field>
-        <Field Name="LotSize_ProdOrderRoutingLine">
-          <DataField>LotSize_ProdOrderRoutingLine</DataField>
-        </Field>
-        <Field Name="LotSize_ProdOrderRoutingLineFormat">
-          <DataField>LotSize_ProdOrderRoutingLineFormat</DataField>
-        </Field>
-        <Field Name="RoutingNo_ProdOrderRoutingLine">
-          <DataField>RoutingNo_ProdOrderRoutingLine</DataField>
-        </Field>
-        <Field Name="QRCodeRoutingLine">
-          <DataField>QRCodeRoutingLine</DataField>
-        </Field>
-        <Field Name="StartingTime_ProdOrderRoutingLine">
-          <DataField>StartingTime_ProdOrderRoutingLine</DataField>
-        </Field>
-        <Field Name="StartingDate_ProdOrderRoutingLine">
-          <DataField>StartingDate_ProdOrderRoutingLine</DataField>
-        </Field>
-      </Fields>
-    </DataSet>
-  </DataSets>
   <ReportSections>
     <ReportSection>
       <Body>
@@ -166,7 +93,7 @@
                   </TablixCells>
                 </TablixRow>
                 <TablixRow>
-                  <Height>0.53216cm</Height>
+                  <Height>1.30583cm</Height>
                   <TablixCells>
                     <TablixCell>
                       <CellContents>
@@ -190,6 +117,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -200,26 +128,32 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox7">
+                        <Textbox Name="QRCodeRoutingLine">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value />
-                                  <Style />
+                                  <Value>=Fields!QRCodeRoutingLine.Value</Value>
+                                  <Style>
+                                    <FontFamily>IDAutomation2D</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                  </Style>
                                 </TextRun>
                               </TextRuns>
-                              <Style />
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox7</rd:DefaultName>
+                          <rd:DefaultName>QRCodeRoutingLine</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -333,8 +267,8 @@
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>DataSet_Result</DataSetName>
-            <Top>2.06803cm</Top>
-            <Height>1.59648cm</Height>
+            <Top>2.07705cm</Top>
+            <Height>2.37015cm</Height>
             <Width>9.81193cm</Width>
             <Style>
               <Border>
@@ -564,6 +498,7 @@
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>DataSet_Result</DataSetName>
+            <Top>0.00902cm</Top>
             <Height>1.75033cm</Height>
             <Width>7.09788cm</Width>
             <ZIndex>1</ZIndex>
@@ -583,6 +518,7 @@
                     <Value>=First(Fields!QRProdOrderNo.Value, "DataSet_Result")</Value>
                     <Style>
                       <FontFamily>IDAutomation2D</FontFamily>
+                      <FontSize>8pt</FontSize>
                     </Style>
                   </TextRun>
                 </TextRuns>
@@ -592,7 +528,7 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>QRProdOrderNo</rd:DefaultName>
-            <Left>7.11059cm</Left>
+            <Left>7.13316cm</Left>
             <Height>1.75033cm</Height>
             <Width>2.70133cm</Width>
             <ZIndex>2</ZIndex>
@@ -608,7 +544,7 @@
             </Style>
           </Textbox>
           <Line Name="Line1">
-            <Top>1.9177cm</Top>
+            <Top>1.92672cm</Top>
             <Left>0.0127cm</Left>
             <Height>0cm</Height>
             <Width>9.79923cm</Width>
@@ -620,7 +556,7 @@
             </Style>
           </Line>
         </ReportItems>
-        <Height>3.90602cm</Height>
+        <Height>4.4472cm</Height>
         <Style>
           <Border>
             <Style>None</Style>
@@ -632,7 +568,7 @@
           </BottomBorder>
         </Style>
       </Body>
-      <Width>9.81193cm</Width>
+      <Width>9.83449cm</Width>
       <Page>
         <PageHeight>10cm</PageHeight>
         <PageWidth>14cm</PageWidth>
@@ -645,12 +581,6 @@
       </Page>
     </ReportSection>
   </ReportSections>
-  <ReportParametersLayout>
-    <GridLayoutDefinition>
-      <NumberOfColumns>4</NumberOfColumns>
-      <NumberOfRows>2</NumberOfRows>
-    </GridLayoutDefinition>
-  </ReportParametersLayout>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
     if Value = 0 then
         Return ""
@@ -690,4 +620,77 @@ End Function
   <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
   <rd:ReportUnitType>Cm</rd:ReportUnitType>
   <rd:ReportID>0eeb6585-38ae-40f1-885b-8d50088d51b4</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="StatusProdOrder">
+          <DataField>StatusProdOrder</DataField>
+        </Field>
+        <Field Name="prodOrderNoCount">
+          <DataField>prodOrderNoCount</DataField>
+        </Field>
+        <Field Name="NoProdOrder">
+          <DataField>NoProdOrder</DataField>
+        </Field>
+        <Field Name="QRProdOrderNo">
+          <DataField>QRProdOrderNo</DataField>
+        </Field>
+        <Field Name="CommentProductionOrder">
+          <DataField>CommentProductionOrder</DataField>
+        </Field>
+        <Field Name="DueDateProductionOrder">
+          <DataField>DueDateProductionOrder</DataField>
+        </Field>
+        <Field Name="TodayFormatted">
+          <DataField>TodayFormatted</DataField>
+        </Field>
+        <Field Name="CompanyName">
+          <DataField>CompanyName</DataField>
+        </Field>
+        <Field Name="ProdOrderTableCaptionFilt">
+          <DataField>ProdOrderTableCaptionFilt</DataField>
+        </Field>
+        <Field Name="ProdOrderFilter">
+          <DataField>ProdOrderFilter</DataField>
+        </Field>
+        <Field Name="Description">
+          <DataField>Description</DataField>
+        </Field>
+        <Field Name="ProdRoutingLineCount">
+          <DataField>ProdRoutingLineCount</DataField>
+        </Field>
+        <Field Name="EndingDate_ProdOrderRoutingLine">
+          <DataField>EndingDate_ProdOrderRoutingLine</DataField>
+        </Field>
+        <Field Name="EndingTime_ProdOrderRoutingLine">
+          <DataField>EndingTime_ProdOrderRoutingLine</DataField>
+        </Field>
+        <Field Name="LocationCode_ProdOrderRoutingLine">
+          <DataField>LocationCode_ProdOrderRoutingLine</DataField>
+        </Field>
+        <Field Name="LotSize_ProdOrderRoutingLine">
+          <DataField>LotSize_ProdOrderRoutingLine</DataField>
+        </Field>
+        <Field Name="LotSize_ProdOrderRoutingLineFormat">
+          <DataField>LotSize_ProdOrderRoutingLineFormat</DataField>
+        </Field>
+        <Field Name="RoutingNo_ProdOrderRoutingLine">
+          <DataField>RoutingNo_ProdOrderRoutingLine</DataField>
+        </Field>
+        <Field Name="QRCodeRoutingLine">
+          <DataField>QRCodeRoutingLine</DataField>
+        </Field>
+        <Field Name="StartingTime_ProdOrderRoutingLine">
+          <DataField>StartingTime_ProdOrderRoutingLine</DataField>
+        </Field>
+        <Field Name="StartingDate_ProdOrderRoutingLine">
+          <DataField>StartingDate_ProdOrderRoutingLine</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
 </Report>
