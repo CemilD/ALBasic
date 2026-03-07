@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="de-DE" original="AL_Basic">
+    <body>
+      <group id="body">
+        <trans-unit id="Table 1997062397 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>KVP Table</source>
+          <target state="translated">Inhalt</target>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 633175764 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Inhalt</source>
+          <target state="translated">Artikelbeschreibung</target>
+          <note from="Developer" annotates="general" priority="2">DEU=Inhalt</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Body - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 2853697946 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Editable</source>
+          <target state="translated">Artikelnummer</target>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Editable - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 3850961964 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>External Id</source>
+          <target state="translated">Eingereicht durch</target>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field External Id - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 1653124357 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>HTML Formatted Body</source>
+          <target state="translated">Fertigungsauftragsnr.</target>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field HTML Formatted Body - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 4112877437 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Artikelbeschreibung</source>
+          <target state="translated">Betreff</target>
+          <note from="Developer" annotates="general" priority="2">DEU=Artikelbeschreibung</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field ItemDescription - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 332802016 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Artikelnummer</source>
+          <target state="translated">KVP Vorschalg</target>
+          <note from="Developer" annotates="general" priority="2">DEU=Artikelnummer</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field ItemNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 346303908 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>KVPid</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field KVPid - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 1054913556 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. of Modifies</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field No. of Modifies - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 3552983923 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Submitted By</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">DEU= Eingereicht durch</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Owner - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 1900957152 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Fertigungsauftragsnr.</source>
+          <target state="translated">Fertigungsauftragsnr.</target>
+          <note from="Developer" annotates="general" priority="2">DEU=Fertigungsauftragsnr.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field SourceNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1997062397 - Field 1234124704 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Betreff</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">DEU=Betreff</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Subject - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 2842094365 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the item description.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control Item Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 568743302 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the item number.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control Item No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 3332576616 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the content of the email.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control KVP Editor - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 3332576616 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>KVP Vorschlag</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control KVP Editor - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 2614682734 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source> </source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control KVPHeader - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 346303908 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the KVPid field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control KVPid - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 3552983923 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the owner of the KVP record.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control Owner - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 743612366 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the production order number.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control Production Order No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3999776909 - Control 1234124704 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Subject field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPCard - Control Subject - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>KVP List</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 346303908 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the KVPid field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control KVPid - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 3552983923 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Owner field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control Owner - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 1234124704 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Subject field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control Subject - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 577209412 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the SystemCreatedAt field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control SystemCreatedAt - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 4000648066 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the SystemCreatedBy field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control SystemCreatedBy - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 2453272523 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the SystemModifiedAt field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control SystemModifiedAt - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1790796503 - Control 4085837753 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the SystemModifiedBy field.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2">%</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control SystemModifiedBy - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="PageExtension 3161582236 - Action 2124718866 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3698582500">
+          <source>KVP</source>
+          <target state="KVP Vorschalg"/>
+          <note from="Developer" annotates="general" priority="2">DEU = KVP Vorschalg</note>
+          <note from="Xliff Generator" annotates="general" priority="3">PageExtension ReleasedProductionOrder - Action KVPNotes - Property Caption</note>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>
