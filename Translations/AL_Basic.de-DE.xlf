@@ -11,7 +11,7 @@
         </trans-unit>
         <trans-unit id="Table 1997062397 - Field 633175764 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Inhalt</source>
-          <target state="translated">Artikelbeschreibung</target>
+          <target state="translated">Inhalt</target>
           <note from="Developer" annotates="general" priority="2">DEU=Inhalt</note>
           <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Body - Property Caption</note>
         </trans-unit>
@@ -35,13 +35,13 @@
         </trans-unit>
         <trans-unit id="Table 1997062397 - Field 4112877437 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Artikelbeschreibung</source>
-          <target state="translated">Betreff</target>
+          <target state="translated">Artikelbeschreibung</target>
           <note from="Developer" annotates="general" priority="2">DEU=Artikelbeschreibung</note>
           <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field ItemDescription - Property Caption</note>
         </trans-unit>
         <trans-unit id="Table 1997062397 - Field 332802016 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Artikelnummer</source>
-          <target state="translated">KVP Vorschalg</target>
+          <target state="translated">Artikelnummer</target>
           <note from="Developer" annotates="general" priority="2">DEU=Artikelnummer</note>
           <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field ItemNo - Property Caption</note>
         </trans-unit>
@@ -59,7 +59,7 @@
         </trans-unit>
         <trans-unit id="Table 1997062397 - Field 3552983923 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Submitted By</source>
-          <target state="needs-translation"/>
+          <target state="translated">Eingereicht durch</target>
           <note from="Developer" annotates="general" priority="2">DEU= Eingereicht durch</note>
           <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Owner - Property Caption</note>
         </trans-unit>
@@ -71,9 +71,39 @@
         </trans-unit>
         <trans-unit id="Table 1997062397 - Field 1234124704 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Betreff</source>
-          <target state="needs-translation"/>
+          <target state="translated">Betreff</target>
           <note from="Developer" annotates="general" priority="2">DEU=Betreff</note>
           <note from="Xliff Generator" annotates="general" priority="3">Table CDEKVPTableMyTable - Field Subject - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2778041753 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>CDE Shortage List Table</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table cdeShortageListTableBuffer - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2778041753 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table cdeShortageListTableBuffer - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2778041753 - Field 3654775993 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Production Order</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table cdeShortageListTableBuffer - Field ProdOrder - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2778041753 - Field 570822770 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Production Order</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table cdeShortageListTableBuffer - Field ProdOrderNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2778041753 - Field 3955711665 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Unit of Measure</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Table cdeShortageListTableBuffer - Field UnitOfMeasure - Property Caption</note>
         </trans-unit>
         <trans-unit id="Page 3999776909 - Control 2842094365 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
           <source>Specifies the item description.</source>
@@ -177,11 +207,167 @@
           <note from="Developer" annotates="general" priority="2">%</note>
           <note from="Xliff Generator" annotates="general" priority="3">Page cdeKVPList - Control SystemModifiedBy - Property ToolTip</note>
         </trans-unit>
+        <trans-unit id="Page 3567428892 - Property 1064389655" size-unit="char" translate="yes" xml:space="preserve">
+          <source>CDE Shortage List</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeShortagePage - Property AboutTitle</note>
+        </trans-unit>
+        <trans-unit id="Page 3567428892 - Property 247559172" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Use this page to review the list of items with shortages for a specific production order. The list is based on the current inventory and the demand from the production order.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeShortagePage - Property AboutText</note>
+        </trans-unit>
+        <trans-unit id="Page 3567428892 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>CDE Shortage List</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeShortagePage - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3567428892 - Control 1401568593 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the production order number or a filter on the production order numbers that you would like to trace.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeShortagePage - Control ProdOrderFilter - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3567428892 - Control 1401568593 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Production Order Filter</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Page cdeShortagePage - Control ProdOrderFilter - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>CDE Prod. Order Document</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <target state="translated">Beschreibung</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Beschreibung"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 4029061451 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending Date</source>
+          <target state="translated">Endet am</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Endet am"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn EndingDate_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 1182675892 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending Time</source>
+          <target state="translated">Endet um</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Endet um"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn EndingTime_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 2783629798 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Location Code</source>
+          <target state="translated">Lagerort</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Lagerort"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn LocationCode_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 3207454676 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Lot Size</source>
+          <target state="translated">Losgröße</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Losgröße"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn LotSize_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 709302468 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Production Order Routing Line Count</source>
+          <target state="translated">Anzahl der FA-Arbeitspläne</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Anzahl der FA-Arbeitspläne"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn ProdRoutingLineCount - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 169170472 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>QR Code for Routing No.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn QRCodeRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 1943971793 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Routing No.</source>
+          <target state="translated">Arbeitsplan-Nr.</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Arbeitsplan-Nr."</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn RoutingNo_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 3456123290 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Date</source>
+          <target state="translated">Beginnt am</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Beginnt am"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn StartingDate_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 1907670689 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Time</source>
+          <target state="translated">Beginnt um</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Beginnt um"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn StartingTime_ProdOrderRoutingLine - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 3797486266 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Comment</source>
+          <target state="translated">Bemerkung</target>
+          <note from="Developer" annotates="general" priority="2">Deu = Bemerkung</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn CommentProductionOrder - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 4169331855 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Due Date</source>
+          <target state="translated">Fälligkeitsdatum</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Fälligkeitsdatum"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn DueDateProductionOrder - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 4089766682 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Production Order No.</source>
+          <target state="translated">FA- Nummer</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "FA- Nummer"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn NoProdOrder - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 4160235591 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Production Order No. Count</source>
+          <target state="translated">Anzahl der FA-Nummern</target>
+          <note from="Developer" annotates="general" priority="2">Deu = "Anzahl der FA-Nummern"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn prodOrderNoCount - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 1385583607 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>QR Code for Production Order No.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn QRProdOrderNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - ReportColumn 1722898709 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Status</source>
+          <target state="translated">Status</target>
+          <note from="Developer" annotates="general" priority="2">Deu = Status</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - ReportColumn StatusProdOrder - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - RequestPage 2516438534 - Property 1064389655" size-unit="char" translate="yes" xml:space="preserve">
+          <source>About Prod. Order - Job Card</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - RequestPage RequestOptionsPage - Property AboutTitle</note>
+        </trans-unit>
+        <trans-unit id="Report 1366266644 - RequestPage 2516438534 - Property 247559172" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Details out the components and capacity required to fulfil a Production Order. Use it to provide a printable report that your team can use to execute the manufacturing job.</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">Report CDEReleasedProdOrderDoc - RequestPage RequestOptionsPage - Property AboutText</note>
+        </trans-unit>
+        <trans-unit id="PageExtension 2315465016 - Control 2091816272 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 1379888169">
+          <source>Fehlteilanalyse</source>
+          <target state="needs-translation"/>
+          <note from="Developer" annotates="general" priority="2"/>
+          <note from="Xliff Generator" annotates="general" priority="3">PageExtension cdeManufacturingSetupExt - Control cdeShortageGroup - Property Caption</note>
+        </trans-unit>
         <trans-unit id="PageExtension 3161582236 - Action 2124718866 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3698582500">
           <source>KVP</source>
-          <target state="KVP Vorschalg"/>
+          <target state="translated">KVP Vorschlag</target>
           <note from="Developer" annotates="general" priority="2">DEU = KVP Vorschalg</note>
           <note from="Xliff Generator" annotates="general" priority="3">PageExtension ReleasedProductionOrder - Action KVPNotes - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="TableExtension 4102354455 - Field 2749998653 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Table 1379888169">
+          <source>Shortage active</source>
+          <target state="translated">Fehlteilanalyse aktiv</target>
+          <note from="Developer" annotates="general" priority="2">DEU= Fehlteilanalyse aktiv</note>
+          <note from="Xliff Generator" annotates="general" priority="3">TableExtension cdeManufacturingSetup - Field cdeShortage - Property Caption</note>
         </trans-unit>
       </group>
     </body>
