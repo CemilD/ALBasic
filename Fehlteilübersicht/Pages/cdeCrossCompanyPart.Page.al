@@ -72,22 +72,23 @@ page 50010 cdeCrossCompanyPart
             exit;
         end;
 
-        // Alle Mandanten durchlaufen und Bestand direkt über ChangeCompany() abfragen
+        // Alle Mandanten durchlaufen – jeder Mandant erhält eine Zeile, auch wenn Artikel nicht vorhanden (Bestand = 0)
         if Companies.FindSet() then
             repeat
+                Clear(CrossItem);
                 CrossItem.ChangeCompany(Companies.Name);
-                CrossItem.Reset();
+                Rec.Init();
+                Rec.CompanyName := CopyStr(Companies.Name, 1, 30);
+                Rec.ItemNo := pItemNo;
+                Rec.LocationCode := '';
                 if CrossItem.Get(pItemNo) then begin
                     CrossItem.CalcFields(Inventory);
-                    Rec.Init();
-                    Rec.CompanyName := CopyStr(Companies.Name, 1, 30);
-                    Rec.ItemNo := pItemNo;
-                    Rec.LocationCode := '';
                     Rec.Inventory := CrossItem.Inventory;
                     Rec.UnitOfMeasure := CrossItem."Base Unit of Measure";
                     Rec.ItemDescription := CrossItem.Description;
-                    Rec.Insert();
-                end;
+                end else
+                    Rec.Inventory := 0;
+                Rec.Insert();
             until Companies.Next() = 0;
 
         if Rec.FindFirst() then;

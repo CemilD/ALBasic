@@ -21,36 +21,6 @@ page 50002 cdeShortagePage
             {
                 Caption = 'Filter';
 
-                field(CompanyFilterField; CompanyFilter)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Mandant';
-                    ToolTip = 'Mandant, dessen Fehlteile angezeigt werden sollen. Vorbelegt mit dem aktuellen Mandanten.';
-
-                    trigger OnLookup(var Text: Text): Boolean
-                    var
-                        Company: Record Company;
-                    begin
-                        // Page::Companies = Standard-Mandantenliste (ID 357)
-                        if Page.RunModal(Page::Companies, Company) = ACTION::LookupOK then begin
-                            CompanyFilter := Company.Name;
-                            Text := CompanyFilter;
-                            // FA-Filter zurücksetzen – FAs sind mandantenspezifisch
-                            ProdOrderFilter := '';
-                            // OnLookup löst kein OnValidate aus → LoadData() hier explizit aufrufen
-                            LoadData();
-                            exit(true);
-                        end;
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        // Bei Mandantenwechsel FA-Filter leeren und Daten neu laden
-                        ProdOrderFilter := '';
-                        LoadData();
-                    end;
-                }
-
                 field(ProdOrderFilter; ProdOrderFilter)
                 {
                     ApplicationArea = All;
@@ -64,15 +34,8 @@ page 50002 cdeShortagePage
                         ProdOrderList: Page "Production Order List";
                         cdeFilterMgt: Codeunit cdeSelectionFilterMgt;
                         FirstNo: Text;
-                        TargetCompany: Text[30];
                     begin
-                        // Ziel-Mandant bestimmen: gewählter Mandant oder aktueller
-                        if CompanyFilter <> '' then
-                            TargetCompany := CompanyFilter
-                        else
-                            TargetCompany := CopyStr(CompanyName(), 1, 30);
-
-                        ProdOrder.ChangeCompany(TargetCompany);
+                        ProdOrder.ChangeCompany(CopyStr(CompanyName(), 1, 30));
                         ProdOrder.Reset();
                         ProdOrder.SetRange(Status, ProdOrder.Status::Released);
                         Clear(ProdOrderList);
@@ -84,7 +47,7 @@ page 50002 cdeShortagePage
                         // gewählten FA positionieren, damit der Benutzer die Auswahl nur anpassen muss
                         if ProdOrderFilter <> '' then begin
                             FirstNo := cdeFilterMgt.GetFirstValueFromFilter(ProdOrderFilter);
-                            FirstProdOrder.ChangeCompany(TargetCompany);
+                            FirstProdOrder.ChangeCompany(CopyStr(CompanyName(), 1, 30));
                             if FirstProdOrder.Get(FirstProdOrder.Status::Released, FirstNo) then
                                 ProdOrderList.SetRecord(FirstProdOrder);
                         end;
@@ -265,17 +228,9 @@ page 50002 cdeShortagePage
 
     var
         ProdOrderFilter: Text;
-        CompanyFilter: Text[30];
         VariantFilter: Text;
         // RowStyle wird pro Zeile in OnAfterGetRecord gesetzt
         RowStyle: Text;
-
-    trigger OnOpenPage()
-    begin
-        // Standard: aktueller Mandant vorbelegen, damit der Benutzer sofort den richtigen Kontext sieht
-        if CompanyFilter = '' then
-            CompanyFilter := CopyStr(CompanyName(), 1, 30);
-    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -312,9 +267,8 @@ page 50002 cdeShortagePage
     var
         cdeShortageListMgt: Codeunit cdeShortageListMgt;
     begin
-        // Fehlteile in den temporären Source-Table-Puffer laden
-        // CompanyFilter leer = aktueller Mandant
-        cdeShortageListMgt.LoadShortages(ProdOrderFilter, CompanyFilter, Rec);
+        // Fehlteile in den temporären Source-Table-Puffer laden (immer aktueller Mandant)
+        cdeShortageListMgt.LoadShortages(ProdOrderFilter, CopyStr(CompanyName(), 1, 30), Rec);
 
         // Cursor auf ersten Datensatz setzen
         if Rec.FindFirst() then;
