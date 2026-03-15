@@ -144,7 +144,7 @@ page 50003 cdeShortageTimelinePart
             // WeekNo: negativ = vor Arbeitsbeginn, 0 = Arbeitswoche, positiv = danach
             Rec.WeekNo := i - WeeksBefore;
             // Label: "KW 12  (17.03 - 23.03)" – Arbeitsbeginnwoche wird mit * markiert
-            Rec.PeriodLabel := 'KW ' + Format(Date2DWY(WeekStart, 2)) + '  (' +
+            Rec.PeriodLabel := 'KW ' + Format(Date2DWY(WeekStart, 2)) + '/' + Format(Date2DWY(WeekStart, 3) MOD 100) + '  (' +
                                 Format(WeekStart, 0, '<Day,2>') + '.' + Format(WeekStart, 0, '<Month,2>') +
                                 ' - ' +
                                 Format(WeekEnd, 0, '<Day,2>') + '.' + Format(WeekEnd, 0, '<Month,2>') + ')';

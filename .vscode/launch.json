@@ -9,6 +9,7 @@
             "environmentName": "ALBootcampCDE",
             "tenant": "c59b1907-0f60-4f98-9ef2-1fe69d870146",
             "breakOnError": "All",
+            "startupObjectId": 50003,
             "launchBrowser": true,
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true,

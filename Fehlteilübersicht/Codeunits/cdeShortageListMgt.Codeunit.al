@@ -4,10 +4,11 @@ codeunit 50004 cdeShortageListMgt
     /// Lädt alle Fehlteile für die gewählten Fertigungsaufträge in den temporären Puffer.
     /// Fehlteile = FA-Komponenten, bei denen der verfügbare Bestand den Bedarf nicht deckt.
     /// </summary>
-    procedure LoadShortages(ProdOrderFilter: Text; var ShortageBuffer: Record cdeShortageListTableBuffer)
+    procedure LoadShortages(ProdOrderFilter: Text; CompanyName: Text[30]; var ShortageBuffer: Record cdeShortageListTableBuffer)
     var
         ProdOrderComp: Record "Prod. Order Component";
         AvailableQty: Decimal;
+        TargetCompany: Text[30];
     begin
         // Bestehende Puffer-Einträge löschen, damit die Liste neu aufgebaut wird
         ShortageBuffer.Reset();
@@ -17,7 +18,14 @@ codeunit 50004 cdeShortageListMgt
         if ProdOrderFilter = '' then
             exit;
 
+        // Ziel-Mandant: leer = aktueller Mandant
+        if CompanyName <> '' then
+            TargetCompany := CompanyName
+        else
+            TargetCompany := CopyStr(CompanyName(), 1, 30);
+
         // Alle Komponenten der freigegebenen FAs gemäß Filter einlesen
+        ProdOrderComp.ChangeCompany(TargetCompany);
         ProdOrderComp.Reset();
         ProdOrderComp.SetRange(Status, ProdOrderComp.Status::Released);
         ProdOrderComp.SetFilter("Prod. Order No.", ProdOrderFilter);
@@ -60,12 +68,16 @@ codeunit 50004 cdeShortageListMgt
 
     /// <summary>
     /// Berechnet den verfügbaren Bestand eines Artikels am Lagerort zum Bedarfstermin.
+    /// Verwendet ChangeCompany() um auch mandantenfremde Bestände abzufragen.
     /// Gibt 0 zurück wenn der Artikel nicht gefunden wurde.
     /// </summary>
     local procedure CalcAvailableQty(ProdOrderComp: Record "Prod. Order Component"): Decimal
     var
         Item: Record Item;
     begin
+        // ChangeCompany vom ProdOrderComp-Record übernehmen
+        Item.ChangeCompany(ProdOrderComp.CurrentCompany);
+
         // Artikel laden – wenn nicht gefunden, Bestand = 0 (= immer Fehlteil)
         if not Item.Get(ProdOrderComp."Item No.") then
             exit(0);

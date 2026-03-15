@@ -21,6 +21,36 @@ page 50002 cdeShortagePage
             {
                 Caption = 'Filter';
 
+                field(CompanyFilterField; CompanyFilter)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Mandant';
+                    ToolTip = 'Mandant, dessen Fehlteile angezeigt werden sollen. Vorbelegt mit dem aktuellen Mandanten.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        Company: Record Company;
+                    begin
+                        // Page::Companies = Standard-Mandantenliste (ID 357)
+                        if Page.RunModal(Page::Companies, Company) = ACTION::LookupOK then begin
+                            CompanyFilter := Company.Name;
+                            Text := CompanyFilter;
+                            // FA-Filter zurücksetzen – FAs sind mandantenspezifisch
+                            ProdOrderFilter := '';
+                            // OnLookup löst kein OnValidate aus → LoadData() hier explizit aufrufen
+                            LoadData();
+                            exit(true);
+                        end;
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        // Bei Mandantenwechsel FA-Filter leeren und Daten neu laden
+                        ProdOrderFilter := '';
+                        LoadData();
+                    end;
+                }
+
                 field(ProdOrderFilter; ProdOrderFilter)
                 {
                     ApplicationArea = All;
@@ -34,7 +64,15 @@ page 50002 cdeShortagePage
                         ProdOrderList: Page "Production Order List";
                         cdeFilterMgt: Codeunit cdeSelectionFilterMgt;
                         FirstNo: Text;
+                        TargetCompany: Text[30];
                     begin
+                        // Ziel-Mandant bestimmen: gewählter Mandant oder aktueller
+                        if CompanyFilter <> '' then
+                            TargetCompany := CompanyFilter
+                        else
+                            TargetCompany := CopyStr(CompanyName(), 1, 30);
+
+                        ProdOrder.ChangeCompany(TargetCompany);
                         ProdOrder.Reset();
                         ProdOrder.SetRange(Status, ProdOrder.Status::Released);
                         Clear(ProdOrderList);
@@ -46,6 +84,7 @@ page 50002 cdeShortagePage
                         // gewählten FA positionieren, damit der Benutzer die Auswahl nur anpassen muss
                         if ProdOrderFilter <> '' then begin
                             FirstNo := cdeFilterMgt.GetFirstValueFromFilter(ProdOrderFilter);
+                            FirstProdOrder.ChangeCompany(TargetCompany);
                             if FirstProdOrder.Get(FirstProdOrder.Status::Released, FirstNo) then
                                 ProdOrderList.SetRecord(FirstProdOrder);
                         end;
@@ -136,13 +175,23 @@ page 50002 cdeShortagePage
             }
         }
 
-        // Zeitschiene rechts: zeigt 6 Wochenblöcke für den aktuell selektierten Artikel
+        // Infobox rechts: Zeitschiene + Stücklistenstruktur + Mandantenbestand
         area(FactBoxes)
         {
             part(cdeTimelinePart; cdeShortageTimelinePart)
             {
                 ApplicationArea = All;
                 Caption = 'Zeitschiene';
+            }
+            part(cdeItemBOMPart; cdeShortageItemBOMPart)
+            {
+                ApplicationArea = All;
+                Caption = 'Stücklistenstruktur';
+            }
+            part(cdeCrossCompanyPart; cdeCrossCompanyPart)
+            {
+                ApplicationArea = All;
+                Caption = 'Mandantenbestand';
             }
         }
     }
@@ -166,36 +215,97 @@ page 50002 cdeShortagePage
                     LoadData();
                 end;
             }
+            action(ShowBOMStructure)
+            {
+                ApplicationArea = All;
+                Caption = 'Stücklistenstruktur';
+                ToolTip = 'Öffnet die Stücklistenstruktur des aktuell markierten Artikels (wie in der Artikelkarte)';
+                Image = BOM;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                Enabled = Rec.ItemNo <> '';
+
+                trigger OnAction()
+                var
+                    Item: Record Item;
+                    BOMPage: Page cdeShortageBOMPage;
+                begin
+                    if not Item.Get(Rec.ItemNo) then exit;
+                    // Prüfen ob für diesen Artikel überhaupt eine Fertigungsstückliste hinterlegt ist
+                    if Item."Production BOM No." = '' then begin
+                        Message('Für Artikel %1 - %2 ist keine Stücklistenstruktur vorhanden.', Item."No.", Item.Description);
+                        exit;
+                    end;
+                    // ItemNo vor Run() setzen → OnOpenPage liest den Wert und lädt genau diesen Artikel
+                    BOMPage.SetItemNo(Rec.ItemNo);
+                    BOMPage.Run();
+                end;
+            }
+            action("Where-Used")
+            {
+                AccessByPermission = TableData "Production BOM Header" = R;
+                ApplicationArea = Manufacturing;
+                Caption = 'Where-Used';
+                Image = Track;
+                ToolTip = 'Zeigt an, in welchen Fertigungsstücklisten dieser Artikel verwendet wird.';
+
+                trigger OnAction()
+                var
+                    Item: Record Item;
+                    WhereUsedPage: Page "Prod. BOM Where-Used";
+                begin
+                    if not Item.Get(Rec.ItemNo) then exit;
+                    WhereUsedPage.SetItem(Item, WorkDate());
+                    WhereUsedPage.Run();
+                end;
+            }
         }
     }
 
     var
         ProdOrderFilter: Text;
+        CompanyFilter: Text[30];
         VariantFilter: Text;
         // RowStyle wird pro Zeile in OnAfterGetRecord gesetzt
         RowStyle: Text;
 
+    trigger OnOpenPage()
+    begin
+        // Standard: aktueller Mandant vorbelegen, damit der Benutzer sofort den richtigen Kontext sieht
+        if CompanyFilter = '' then
+            CompanyFilter := CopyStr(CompanyName(), 1, 30);
+    end;
+
     trigger OnAfterGetRecord()
-    var
-        ProdOrder: Record "Production Order";
-        StartingDate: Date;
     begin
         // Rot = kein Bestand vorhanden, Gelb = Teilbestand vorhanden
         if Rec.AvailableQty <= 0 then
             RowStyle := 'Unfavorable'
         else
             RowStyle := 'Attention';
+    end;
 
+    trigger OnAfterGetCurrRecord()
+    var
+        ProdOrder: Record "Production Order";
+        StartingDate: Date;
+    begin
         // FA-Startdatum für die Zeitschiene ermitteln
-        // Gesucht wird der früheste FA aus dem Filter für den aktuellen Artikel
         if ProdOrder.Get(ProdOrder.Status::Released, Rec.ProdOrderNo) then
             StartingDate := ProdOrder."Starting Date"
         else
             StartingDate := Today();
 
-        // Zeitschiene rechts für den aktuell selektierten Artikel neu laden
-        // Referenzpunkt = FA-Arbeitsbeginn, Anzahl Wochen aus Produktionseinrichtung
+        // Zeitschiene für den aktuell markierten Artikel aktualisieren
         CurrPage.cdeTimelinePart.Page.LoadTimeline(Rec.ItemNo, Rec.LocationCode, ProdOrderFilter, StartingDate);
+
+        // Stücklistenstruktur für den aktuell markierten Artikel laden
+        CurrPage.cdeItemBOMPart.Page.LoadBOM(Rec.ItemNo);
+
+        // Mandantenbestand für den aktuell markierten Artikel laden
+        // Neue Mandanten erscheinen automatisch, da die Company-Tabelle dynamisch gelesen wird
+        CurrPage.cdeCrossCompanyPart.Page.LoadCrossCompanyStock(Rec.ItemNo);
     end;
 
     local procedure LoadData()
@@ -203,7 +313,8 @@ page 50002 cdeShortagePage
         cdeShortageListMgt: Codeunit cdeShortageListMgt;
     begin
         // Fehlteile in den temporären Source-Table-Puffer laden
-        cdeShortageListMgt.LoadShortages(ProdOrderFilter, Rec);
+        // CompanyFilter leer = aktueller Mandant
+        cdeShortageListMgt.LoadShortages(ProdOrderFilter, CompanyFilter, Rec);
 
         // Cursor auf ersten Datensatz setzen
         if Rec.FindFirst() then;
