@@ -1,0 +1,20 @@
+Basic
+Tabellen, Pages, einfache PageExtension
+Standardfelder, einfache List/Card
+Einfache Actions und Page.Run
+Grundlegende Codeunit‑Logik ohne Events
+
+Core
+Table Triggers und Validierungen
+Event Subscriber (OnInsert/OnModify/OnAfterValidate)
+Einfache Report/Query/XMLport
+Rollencenter‑Anbindung, Factboxes
+Nummernserie Setup/Abhaengigkeiten, ggf. Table Trigger, Fehlerbehandlung und NoSeries‑Logik.
+Tests oder einfache Fehlerbehandlung
+
+Advanced
+Komplexe Business‑Logik (mehrere Tabellen, Transaktionen)
+Erweiterte Events, Interfaces, Abstraktionen
+Integrationen (API, Web Services, Datenschnittstellen)
+Performance/Locking‑Themen, Security/Permission Sets
+Umfangreiche Tests (Test Codeunits, Test Isolation)
