@@ -54,35 +54,39 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
             exit("PLI Line Import Status"::RejectedMissingEndDate);
         end;
 
-        // ── Debitor must exist in target company ─────────────────────────────────
-        Customer.ChangeCompany(CompanyName);
-        Customer.SetLoadFields("No.");
-        if not Customer.Get(LogLine."Customer No.") then begin
-            LogLine."Error Message" := StrSubstNo(
-                'Debitor "%1" in Mandant "%2" nicht gefunden.',
-                LogLine."Customer No.", CompanyName);
-            exit("PLI Line Import Status"::Skipped);
+        // ── Debitor must exist in target company (nur bei Source Type = Debitor) ──
+        if (LogLine."PL Source Type" = 'Customer') or (LogLine."PL Source Type" = '') then begin
+            Customer.ChangeCompany(CompanyName);
+            Customer.SetLoadFields("No.");
+            if not Customer.Get(LogLine."Customer No.") then begin
+                LogLine."Error Message" := StrSubstNo(
+                    'Debitor "%1" in Mandant "%2" nicht gefunden.',
+                    LogLine."Customer No.", CompanyName);
+                exit("PLI Line Import Status"::Skipped);
+            end;
         end;
 
         // ── Resolve target price list header ─────────────────────────────────────
         if LogLine."Price List Code" <> '' then begin
             PriceListHeader.SetLoadFields(Code, "Source Type", "Source No.", Status);
             if not PriceListHeader.Get(LogLine."Price List Code") then begin
-                LogLine."Error Message" := StrSubstNo('Preisliste "%1" nicht gefunden.', LogLine."Price List Code");
-                exit("PLI Line Import Status"::Error);
+                // Code was provided in JSON priceListHeader → auto-create the price list
+                PriceListCode := CreateHeaderFromJsonData(LogLine);
+            end else begin
+                if (PriceListHeader."Source Type" = PriceListHeader."Source Type"::Customer)
+                    and (PriceListHeader."Source No." <> LogLine."Customer No.")
+                    and (LogLine."PL Source Type" <> 'AllCustomers')
+                then begin
+                    LogLine."Error Message" := StrSubstNo(
+                        'Preisliste "%1" gehoert Debitor "%2", nicht "%3".',
+                        LogLine."Price List Code", PriceListHeader."Source No.", LogLine."Customer No.");
+                    exit("PLI Line Import Status"::Error);
+                end;
+                if PriceListHeader.Status = PriceListHeader.Status::Active then
+                    PriceListCode := CreateDraftCopyCode(PriceListHeader, LogLine."Customer No.", LogLine."Currency Code")
+                else
+                    PriceListCode := LogLine."Price List Code";
             end;
-            if (PriceListHeader."Source Type" = PriceListHeader."Source Type"::Customer)
-                and (PriceListHeader."Source No." <> LogLine."Customer No.")
-            then begin
-                LogLine."Error Message" := StrSubstNo(
-                    'Preisliste "%1" gehoert Debitor "%2", nicht "%3".',
-                    LogLine."Price List Code", PriceListHeader."Source No.", LogLine."Customer No.");
-                exit("PLI Line Import Status"::Error);
-            end;
-            if PriceListHeader.Status = PriceListHeader.Status::Active then
-                PriceListCode := CreateDraftCopyCode(PriceListHeader, LogLine."Customer No.", LogLine."Currency Code")
-            else
-                PriceListCode := LogLine."Price List Code";
         end else
             PriceListCode := FindOrCreateDraftHeaderCode(LogLine."Customer No.", LogLine."Currency Code", PriceListHeader);
 
@@ -179,9 +183,31 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListLine.Init();
         PriceListLine."Price List Code" := PriceListCode;
         PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
-        PriceListLine.Validate("Source Type", PriceListLine."Source Type"::Customer);
-        PriceListLine.Validate("Source No.", LogLine."Customer No.");
-        PriceListLine."Source Group" := "Price Source Group"::Customer;
+        case LogLine."PL Source Type" of
+            'AllCustomers':
+                begin
+                    PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
+                    PriceListLine."Source Group" := "Price Source Group"::Customer;
+                end;
+            'CustomerPriceGroup':
+                begin
+                    PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"Customer Price Group");
+                    PriceListLine.Validate("Source No.", LogLine."PL Source No.");
+                    PriceListLine."Source Group" := "Price Source Group"::Customer;
+                end;
+            'CustomerDiscGroup':
+                begin
+                    PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"Customer Disc. Group");
+                    PriceListLine.Validate("Source No.", LogLine."PL Source No.");
+                    PriceListLine."Source Group" := "Price Source Group"::Customer;
+                end;
+            else begin
+                // Default: Customer (gilt auch fuer leeres PL Source Type)
+                PriceListLine.Validate("Source Type", PriceListLine."Source Type"::Customer);
+                PriceListLine.Validate("Source No.", LogLine."Customer No.");
+                PriceListLine."Source Group" := "Price Source Group"::Customer;
+            end;
+        end;
         PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
         PriceListLine.Validate("Asset No.", LogLine."Item No.");
         PriceListLine.Validate("Unit of Measure Code", LogLine."Unit of Measure Code");
@@ -196,9 +222,84 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListLine."Allow Line Disc." := LogLine."Allow Line Disc.";
         PriceListLine."Line Discount %" := LogLine."Line Discount %";
         PriceListLine."Allow Invoice Disc." := LogLine."Allow Invoice Disc.";
+        if LogLine."VAT Bus. Posting Group" <> '' then
+            PriceListLine."VAT Bus. Posting Gr. (Price)" := LogLine."VAT Bus. Posting Group";
+        PriceListLine."Price Includes VAT" := LogLine."Price Includes VAT";
         // DRAFT POLICY: always Draft — activation is a separate step
         PriceListLine.Status := PriceListLine.Status::Draft;
         PriceListLine.Insert(true);
+    end;
+
+    /// <summary>
+    /// Creates a new Draft Price List Header using the data from the JSON priceListHeader block
+    /// (carried on LogLine."PL *" fields). The code comes from LogLine."Price List Code".
+    /// Called when a code was provided in JSON but the header does not yet exist in BC.
+    /// Always creates Draft. Returns the new header code.
+    /// </summary>
+    local procedure CreateHeaderFromJsonData(var LogLine: Record "PLI Import Log Line"): Code[20]
+    var
+        NewHeader: Record "Price List Header";
+        EffSourceType: Enum "Price Source Type";
+        EffSourceNo: Code[20];
+    begin
+        // Map JSON sourceType string to enum
+        case LogLine."PL Source Type" of
+            'AllCustomers':
+                EffSourceType := "Price Source Type"::"All Customers";
+            'CustomerPriceGroup':
+                begin
+                    EffSourceType := "Price Source Type"::"Customer Price Group";
+                    EffSourceNo := LogLine."PL Source No.";
+                end;
+            'CustomerDiscGroup':
+                begin
+                    EffSourceType := "Price Source Type"::"Customer Disc. Group";
+                    EffSourceNo := LogLine."PL Source No.";
+                end;
+            else begin
+                EffSourceType := "Price Source Type"::Customer;
+                // Default source no.: JSON header sourceNo, fallback to line customer
+                EffSourceNo := LogLine."PL Source No.";
+                if EffSourceNo = '' then
+                    EffSourceNo := LogLine."Customer No.";
+            end;
+        end;
+
+        NewHeader.ChangeCompany(LogLine."Company Name");
+        NewHeader.Init();
+        NewHeader.Code := LogLine."Price List Code";
+        NewHeader."Price Type" := NewHeader."Price Type"::Sale;
+        NewHeader."Source Type" := EffSourceType;
+        NewHeader."Source Group" := "Price Source Group"::Customer;
+        if EffSourceNo <> '' then
+            NewHeader."Source No." := EffSourceNo;
+        NewHeader."Currency Code" := LogLine."PL Currency Code";
+        if LogLine."PL Description" <> '' then
+            NewHeader.Description := LogLine."PL Description"
+        else
+            NewHeader.Description := StrSubstNo('JSON Import - %1', LogLine."Price List Code");
+        if LogLine."PL VAT Bus. Posting Group" <> '' then
+            NewHeader."VAT Bus. Posting Gr. (Price)" := LogLine."PL VAT Bus. Posting Group";
+        NewHeader."Price Includes VAT" := LogLine."PL Price Includes VAT";
+        NewHeader."Allow Updating Defaults" := LogLine."PL Allow Updating Defaults";
+        NewHeader."Allow Invoice Disc." := LogLine."PL Allow Invoice Disc.";
+        NewHeader."Allow Line Disc." := LogLine."PL Allow Line Disc.";
+        case LogLine."PL Amount Type" of
+            'Discount':
+                NewHeader."Amount Type" := NewHeader."Amount Type"::Discount;
+            'Any':
+                NewHeader."Amount Type" := NewHeader."Amount Type"::Any;
+            else
+                NewHeader."Amount Type" := NewHeader."Amount Type"::Price;
+        end;
+        if LogLine."PL Valid From" <> 0D then
+            NewHeader."Starting Date" := LogLine."PL Valid From";
+        if LogLine."PL Valid To" <> 0D then
+            NewHeader."Ending Date" := LogLine."PL Valid To";
+        // DRAFT POLICY: always Draft on import
+        NewHeader.Status := NewHeader.Status::Draft;
+        NewHeader.Insert(true);
+        exit(NewHeader.Code);
     end;
 
     /// <summary>

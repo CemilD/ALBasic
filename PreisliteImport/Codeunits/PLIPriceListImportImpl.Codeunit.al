@@ -12,7 +12,7 @@ codeunit 70101 "PLI Price List Import Impl."
         JsonInStream: InStream;
         JsonContent: Text;
     begin
-        TempBlob.CreateInStream(JsonInStream);
+        TempBlob.CreateInStream(JsonInStream, TextEncoding::UTF8);
         JsonInStream.ReadText(JsonContent);
 
         CreateImportLog(PLIImportLog, FileName, CompanyFilter, PriceListCode);
@@ -35,7 +35,7 @@ codeunit 70101 "PLI Price List Import Impl."
         ImportLog.Modify();
 
         ImportLog.CalcFields("JSON Content");
-        ImportLog."JSON Content".CreateInStream(JsonInStream);
+        ImportLog."JSON Content".CreateInStream(JsonInStream, TextEncoding::UTF8);
         JsonInStream.ReadText(JsonContent);
 
         ParseAndImport(ImportLog, JsonContent, ImportLog."Company Filter");
@@ -163,6 +163,10 @@ codeunit 70101 "PLI Price List Import Impl."
         // SetInsertAsActive is intentionally a no-op in the importer — always Draft
         Importer.SetInsertAsActive(false);
 
+        // Read optional priceListHeader block from JSON.
+        // Cockpit-provided PriceListCode takes precedence over JSON header code.
+        ApplyJsonPriceListHeader(JsonObj, ImportLog);
+
         if not JsonObj.Get('prices', PricesToken) then begin
             SetImportLogFailed(ImportLog, 'JSON does not contain a "prices" array.');
             exit;
@@ -177,6 +181,84 @@ codeunit 70101 "PLI Price List Import Impl."
             LineNo += 1;
             ProcessPriceLine(ImportLog, PriceToken.AsObject(), LineNo, CompanyFilter, Importer);
         end;
+    end;
+
+    /// <summary>
+    /// Reads the optional 'priceListHeader' block from JSON.
+    /// If the block contains a 'code', it is used as the price list target
+    /// (unless the cockpit already provided one).
+    /// Other fields (description, sourceType, sourceNo, currency) are stored on the
+    /// ImportLog so the importer can auto-create the header with the correct data.
+    /// </summary>
+    local procedure ApplyJsonPriceListHeader(JsonObj: JsonObject; var ImportLog: Record "PLI Import Log")
+    var
+        HeaderToken: JsonToken;
+        HeaderObj: JsonObject;
+        JsonCode: Code[20];
+    begin
+        if not JsonObj.Get('priceListHeader', HeaderToken) then
+            exit;
+        HeaderObj := HeaderToken.AsObject();
+
+        JsonCode := CopyStr(GetJsonObjText(HeaderObj, 'code'), 1, 20);
+
+        // Cockpit-provided code wins; JSON code is used only when none was set
+        if ImportLog."Price List Code" = '' then
+            ImportLog."Price List Code" := JsonCode;
+
+        ImportLog."PL Description" := CopyStr(GetJsonObjText(HeaderObj, 'description'), 1, 100);
+        ImportLog."PL Source Type" := CopyStr(GetJsonObjText(HeaderObj, 'sourceType'), 1, 30);
+        ImportLog."PL Source No." := CopyStr(GetJsonObjText(HeaderObj, 'sourceNo'), 1, 20);
+        ImportLog."PL Currency Code" := CopyStr(GetJsonObjText(HeaderObj, 'currency'), 1, 10);
+        ImportLog."PL VAT Bus. Posting Group" := CopyStr(GetJsonObjText(HeaderObj, 'vatBusPostingGroup'), 1, 20);
+        ImportLog."PL Price Includes VAT" := GetJsonObjBool(HeaderObj, 'priceIncludesVat');
+        ImportLog."PL Allow Updating Defaults" := GetJsonObjBool(HeaderObj, 'allowUpdatingDefaults');
+        ImportLog."PL Allow Invoice Disc." := GetJsonObjBoolDef(HeaderObj, 'allowInvoiceDisc', true);
+        ImportLog."PL Allow Line Disc." := GetJsonObjBoolDef(HeaderObj, 'allowLineDisc', true);
+        ImportLog."PL Amount Type" := CopyStr(GetJsonObjText(HeaderObj, 'amountType'), 1, 30);
+        ImportLog."PL Valid From" := GetJsonObjDate(HeaderObj, 'validFrom');
+        ImportLog."PL Valid To" := GetJsonObjDate(HeaderObj, 'validTo');
+        ImportLog.Modify();
+    end;
+
+    local procedure GetJsonObjText(JsonObj: JsonObject; KeyName: Text): Text
+    var
+        Token: JsonToken;
+    begin
+        if not JsonObj.Get(KeyName, Token) then
+            exit('');
+        exit(Token.AsValue().AsText());
+    end;
+
+    local procedure GetJsonObjBool(JsonObj: JsonObject; KeyName: Text): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if not JsonObj.Get(KeyName, Token) then
+            exit(false);
+        exit(Token.AsValue().AsBoolean());
+    end;
+
+    local procedure GetJsonObjBoolDef(JsonObj: JsonObject; KeyName: Text; DefaultValue: Boolean): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if not JsonObj.Get(KeyName, Token) then
+            exit(DefaultValue);
+        exit(Token.AsValue().AsBoolean());
+    end;
+
+    local procedure GetJsonObjDate(JsonObj: JsonObject; KeyName: Text): Date
+    var
+        Token: JsonToken;
+        DateText: Text;
+    begin
+        if not JsonObj.Get(KeyName, Token) then
+            exit(0D);
+        DateText := Token.AsValue().AsText();
+        if DateText = '' then
+            exit(0D);
+        exit(Token.AsValue().AsDate());
     end;
 
     local procedure ReadMetadataType(JsonObj: JsonObject): Text[50]
@@ -228,11 +310,34 @@ codeunit 70101 "PLI Price List Import Impl."
         PLIImportLogLine."Line No." := LineNo;
         PLIImportLogLine."Company Name" := CompanyFilter;
         PLIImportLogLine."Price List Code" := ImportLog."Price List Code";
+        // Carry JSON header metadata for auto-creation in the importer
+        PLIImportLogLine."PL Description" := ImportLog."PL Description";
+        PLIImportLogLine."PL Source Type" := ImportLog."PL Source Type";
+        PLIImportLogLine."PL Source No." := ImportLog."PL Source No.";
+        PLIImportLogLine."PL Currency Code" := ImportLog."PL Currency Code";
+        PLIImportLogLine."PL VAT Bus. Posting Group" := ImportLog."PL VAT Bus. Posting Group";
+        PLIImportLogLine."PL Price Includes VAT" := ImportLog."PL Price Includes VAT";
+        PLIImportLogLine."PL Allow Updating Defaults" := ImportLog."PL Allow Updating Defaults";
+        PLIImportLogLine."PL Allow Invoice Disc." := ImportLog."PL Allow Invoice Disc.";
+        PLIImportLogLine."PL Allow Line Disc." := ImportLog."PL Allow Line Disc.";
+        PLIImportLogLine."PL Amount Type" := ImportLog."PL Amount Type";
+        PLIImportLogLine."PL Valid From" := ImportLog."PL Valid From";
+        PLIImportLogLine."PL Valid To" := ImportLog."PL Valid To";
         PopulateLogLineFromJson(PLIImportLogLine, LineObj);
 
-        if (PLIImportLogLine."Customer No." = '') or (PLIImportLogLine."Item No." = '') then begin
+        if PLIImportLogLine."Item No." = '' then begin
             PLIImportLogLine.Status := PLIImportLogLine.Status::Error;
-            PLIImportLogLine."Error Message" := 'customerNo or itemNo is missing.';
+            PLIImportLogLine."Error Message" := 'itemNo is missing.';
+            PLIImportLogLine.Insert();
+            ImportLog."Error Lines" += 1;
+            ImportLog.Modify();
+            exit;
+        end;
+        if ((PLIImportLogLine."PL Source Type" = 'Customer') or (PLIImportLogLine."PL Source Type" = '')) and
+           (PLIImportLogLine."Customer No." = '')
+        then begin
+            PLIImportLogLine.Status := PLIImportLogLine.Status::Error;
+            PLIImportLogLine."Error Message" := 'customerNo is missing (Pflichtfeld wenn Zuweisen zu Typ = Debitor).';
             PLIImportLogLine.Insert();
             ImportLog."Error Lines" += 1;
             ImportLog.Modify();
@@ -271,6 +376,8 @@ codeunit 70101 "PLI Price List Import Impl."
             PLIImportLogLine."Allow Invoice Disc." := AllowInvDiscToken.AsValue().AsBoolean()
         else
             PLIImportLogLine."Allow Invoice Disc." := true;
+        PLIImportLogLine."VAT Bus. Posting Group" := CopyStr(GetJsonText(LineObj, 'vatBusPostingGroup'), 1, 20);
+        PLIImportLogLine."Price Includes VAT" := GetJsonBool(LineObj, 'priceIncludesVat');
     end;
 
     local procedure ImportToAllCompanies(var ImportLog: Record "PLI Import Log"; var PLIImportLogLine: Record "PLI Import Log Line"; Importer: Interface "IPLIPriceListImporter")
@@ -330,5 +437,14 @@ codeunit 70101 "PLI Price List Import Impl."
         if DateText = '' then
             exit(0D);
         exit(Token.AsValue().AsDate());
+    end;
+
+    local procedure GetJsonBool(JsonObj: JsonObject; KeyName: Text): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if not JsonObj.Get(KeyName, Token) then
+            exit(false);
+        exit(Token.AsValue().AsBoolean());
     end;
 }

@@ -90,6 +90,70 @@ table 70101 "PLI Import Log Line"
             Caption = 'Allow Invoice Disc.';
             InitValue = true;
         }
+        /// <summary>Price list description carried from JSON priceListHeader. Used for auto-creating the header.</summary>
+        field(19; "PL Description"; Text[100])
+        {
+            Caption = 'Preislisten-Beschreibung (JSON)';
+        }
+        /// <summary>Source type from JSON priceListHeader.sourceType (e.g. 'Customer', 'AllCustomers').</summary>
+        field(20; "PL Source Type"; Text[30])
+        {
+            Caption = 'Preisliste Quelle Typ (JSON)';
+        }
+        /// <summary>Source No. from JSON priceListHeader.sourceNo.</summary>
+        field(21; "PL Source No."; Code[20])
+        {
+            Caption = 'Preisliste Quelle Nr. (JSON)';
+        }
+        /// <summary>Currency from JSON priceListHeader.currency.</summary>
+        field(22; "PL Currency Code"; Code[10])
+        {
+            Caption = 'Preisliste Waehrungscode (JSON)';
+        }
+        field(23; "PL VAT Bus. Posting Group"; Code[20])
+        {
+            Caption = 'Preisliste MwSt.-Geschäftsbuchungsgruppe (JSON)';
+        }
+        field(24; "PL Price Includes VAT"; Boolean)
+        {
+            Caption = 'Preisliste Preis inkl. MwSt. (JSON)';
+        }
+        field(25; "PL Allow Updating Defaults"; Boolean)
+        {
+            Caption = 'Preisliste Aktualisieren Standardwerte (JSON)';
+        }
+        field(26; "PL Allow Invoice Disc."; Boolean)
+        {
+            Caption = 'Preisliste Rech.-Rabatt zulassen (JSON)';
+            InitValue = true;
+        }
+        field(27; "PL Allow Line Disc."; Boolean)
+        {
+            Caption = 'Preisliste Zeilenrabatt zulassen (JSON)';
+            InitValue = true;
+        }
+        field(28; "PL Amount Type"; Text[30])
+        {
+            Caption = 'Preisliste Mengentyp (JSON)';
+        }
+        /// <summary>Line-level VAT Bus. Posting Group mirrored to Price List Line.</summary>
+        field(29; "VAT Bus. Posting Group"; Code[20])
+        {
+            Caption = 'MwSt.-Geschäftsbuchungsgruppe (Preis)';
+        }
+        /// <summary>Line-level Price Includes VAT mirrored to Price List Line.</summary>
+        field(30; "Price Includes VAT"; Boolean)
+        {
+            Caption = 'Preis inkl. MwSt.';
+        }
+        field(31; "PL Valid From"; Date)
+        {
+            Caption = 'Preisliste Gültig von (JSON)';
+        }
+        field(32; "PL Valid To"; Date)
+        {
+            Caption = 'Preisliste Gültig bis (JSON)';
+        }
     }
 
     keys

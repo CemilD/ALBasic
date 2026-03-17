@@ -64,7 +64,8 @@ page 70105 "PLI Test JSON Builder"
                 {
                     Caption = 'Beschreibung';
                     ApplicationArea = All;
-                    ToolTip = 'Beschreibungstext. Nur zur Dokumentation, nicht im JSON enthalten.';
+                    ShowMandatory = true;
+                    ToolTip = 'Beschreibung der Preisliste. Pflichtfeld - wird als Kopfbeschreibung in die Preisliste übernommen.';
                 }
                 field(CurrencyCodeField; HeaderCurrencyCode)
                 {
@@ -103,9 +104,9 @@ page 70105 "PLI Test JSON Builder"
 
                     trigger OnValidate()
                     begin
-                        SourceNoVisible := HeaderSourceType = "Price Source Type"::Customer;
-                        SourceNoMandatoryHdr := SourceNoVisible;
-                        if not SourceNoVisible then
+                        SourceNoEditable := HeaderSourceType <> "Price Source Type"::"All Customers";
+                        SourceNoMandatoryHdr := HeaderSourceType = "Price Source Type"::Customer;
+                        if not SourceNoEditable then
                             HeaderSourceNo := '';
                         PushHeaderDefaults();
                         ClearHeaderError();
@@ -129,22 +130,66 @@ page 70105 "PLI Test JSON Builder"
                     Caption = 'Zuweisen zu Nr.';
                     ApplicationArea = All;
                     ShowMandatory = SourceNoMandatoryHdr;
-                    Visible = SourceNoVisible;
-                    ToolTip = 'Debitorennummer wenn Zuweisen zu Typ = Debitor. Wird als Standard-customerNo fuer alle neuen Zeilen uebernommen.';
+                    Editable = SourceNoEditable;
+                    ToolTip = 'Nummer des Datensatzes dem die Preisliste zugewiesen wird (Debitor, Debitorenpreisgruppe, Debitorenrabattgruppe oder Kampagne). Nicht editierbar fuer "Alle Debitoren".';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         Customer: Record Customer;
                         CustomerList: Page "Customer List";
+                        CustPriceGroup: Record "Customer Price Group";
+                        CustPriceGroupList: Page "Customer Price Groups";
+                        CustDiscGroup: Record "Customer Discount Group";
+                        CustDiscGroupList: Page "Customer Disc. Groups";
+                        Campaign: Record Campaign;
+                        CampaignList: Page "Campaign List";
                     begin
-                        CustomerList.LookupMode(true);
-                        if CustomerList.RunModal() = Action::LookupOK then begin
-                            CustomerList.GetRecord(Customer);
-                            HeaderSourceNo := Customer."No.";
-                            Text := Customer."No.";
-                            PushHeaderDefaults();
-                            ClearHeaderError();
-                            exit(true);
+                        case HeaderSourceType of
+                            "Price Source Type"::Customer:
+                                begin
+                                    CustomerList.LookupMode(true);
+                                    if CustomerList.RunModal() = Action::LookupOK then begin
+                                        CustomerList.GetRecord(Customer);
+                                        HeaderSourceNo := Customer."No.";
+                                        Text := Customer."No.";
+                                        PushHeaderDefaults();
+                                        ClearHeaderError();
+                                        exit(true);
+                                    end;
+                                end;
+                            "Price Source Type"::"Customer Price Group":
+                                begin
+                                    CustPriceGroupList.LookupMode(true);
+                                    if CustPriceGroupList.RunModal() = Action::LookupOK then begin
+                                        CustPriceGroupList.GetRecord(CustPriceGroup);
+                                        HeaderSourceNo := CustPriceGroup.Code;
+                                        Text := CustPriceGroup.Code;
+                                        PushHeaderDefaults();
+                                        exit(true);
+                                    end;
+                                end;
+                            "Price Source Type"::"Customer Disc. Group":
+                                begin
+                                    CustDiscGroupList.LookupMode(true);
+                                    if CustDiscGroupList.RunModal() = Action::LookupOK then begin
+                                        CustDiscGroupList.GetRecord(CustDiscGroup);
+                                        HeaderSourceNo := CustDiscGroup.Code;
+                                        Text := CustDiscGroup.Code;
+                                        PushHeaderDefaults();
+                                        exit(true);
+                                    end;
+                                end;
+                            "Price Source Type"::Campaign:
+                                begin
+                                    CampaignList.LookupMode(true);
+                                    if CampaignList.RunModal() = Action::LookupOK then begin
+                                        CampaignList.GetRecord(Campaign);
+                                        HeaderSourceNo := Campaign."No.";
+                                        Text := Campaign."No.";
+                                        PushHeaderDefaults();
+                                        exit(true);
+                                    end;
+                                end;
                         end;
                         exit(false);
                     end;
@@ -169,29 +214,97 @@ page 70105 "PLI Test JSON Builder"
             }
 
             // -------------------------------------------------------
-            // Block 2 – mirrors "Anzeigen" group of Sales Price List
+            // Block 2 – MwSt. (mirrors Sales Price List)
+            // -------------------------------------------------------
+            group(VATGroup)
+            {
+                Caption = 'MwSt.';
+
+                field(VATBusPostingGroupField; HeaderVATBusPostingGroup)
+                {
+                    Caption = 'MwSt.-Geschäftsbuchungsgruppe (Preis)';
+                    ApplicationArea = All;
+                    TableRelation = "VAT Business Posting Group";
+                    ToolTip = 'Gibt die MwSt.-Geschäftsbuchungsgruppe für die Preislistenkopfdaten an.';
+
+                    trigger OnValidate()
+                    begin
+                        PushHeaderDefaults();
+                        ClearHeaderError();
+                    end;
+                }
+                field(PriceIncludesVATField; HeaderPriceIncludesVAT)
+                {
+                    Caption = 'Preis inkl. MwSt.';
+                    ApplicationArea = All;
+                    ToolTip = 'Gibt an, ob in den Preisen auf dieser Preisliste die Mehrwertsteuer enthalten ist.';
+
+                    trigger OnValidate()
+                    begin
+                        PushHeaderDefaults();
+                    end;
+                }
+            }
+
+            // -------------------------------------------------------
+            // Block 3 – Zeilenstandardwerte (mirrors Sales Price List)
+            // -------------------------------------------------------
+            group(LineDefaultsGroup)
+            {
+                Caption = 'Zeilenstandardwerte';
+
+                field(AllowUpdatingDefaultsField; HeaderAllowUpdatingDefaults)
+                {
+                    Caption = 'Aktualisieren von Standardeinstellungen zulassen';
+                    ApplicationArea = All;
+                    ToolTip = 'Gibt an, ob die Standardwerte (Zeilenrabatt zulassen, Rechnungsrabatt zulassen) in den Zeilen dieser Preisliste geändert werden können.';
+
+                    trigger OnValidate()
+                    begin
+                        PushHeaderDefaults();
+                    end;
+                }
+                field(AllowInvoiceDiscField; HeaderAllowInvoiceDisc)
+                {
+                    Caption = 'Rech.-Rabatt zulassen';
+                    ApplicationArea = All;
+                    ToolTip = 'Gibt an, ob ein Rechnungsrabatt für Preise auf dieser Preisliste berechnet werden darf.';
+
+                    trigger OnValidate()
+                    begin
+                        PushHeaderDefaults();
+                    end;
+                }
+                field(AllowLineDiscField; HeaderAllowLineDisc)
+                {
+                    Caption = 'Zeilenrabatt zulassen';
+                    ApplicationArea = All;
+                    ToolTip = 'Gibt an, ob ein Zeilenrabatt für Preise auf dieser Preisliste berechnet werden darf.';
+
+                    trigger OnValidate()
+                    begin
+                        PushHeaderDefaults();
+                    end;
+                }
+            }
+
+            // -------------------------------------------------------
+            // Block 4 – Anzeigen (mirrors Sales Price List)
             // -------------------------------------------------------
             group(ShowGroup)
             {
                 Caption = 'Anzeigen';
 
-                field(AmountTypeField; AmountTypeTxt)
+                field(AmountTypeField; HeaderAmountType)
                 {
-                    Caption = 'Spalten anzeigen fuer';
+                    Caption = 'Spalten anzeigen für';
                     ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Dieses Format importiert ausschliesslich Preise (kein Rabatt).';
-                }
-                field(ImportTypeField; ImportType)
-                {
-                    Caption = 'JSON-Typ  (type)';
-                    ApplicationArea = All;
-                    ToolTip = 'Import-Typ im JSON-Metadaten-Block. Muss einem registrierten Importer entsprechen. Standard: SalesPricelist.';
+                    ToolTip = 'Legt fest, ob die Preisliste Preise, Rabatte oder beides enthält.';
                 }
             }
 
             // -------------------------------------------------------
-            // Block 3 – inline error summary (hidden when no errors)
+            // Block 5 – inline error summary (hidden when no errors)
             // -------------------------------------------------------
             group(ErrorGroup)
             {
@@ -245,6 +358,12 @@ page 70105 "PLI Test JSON Builder"
                         end;
                         exit(false);
                     end;
+                }
+                field(ImportTypeField; ImportType)
+                {
+                    Caption = 'JSON-Typ (type)';
+                    ApplicationArea = All;
+                    ToolTip = 'Import-Typ im JSON-Metadaten-Block. Muss einem registrierten Importer entsprechen. Standard: SalesPricelist.';
                 }
             }
         }
@@ -353,20 +472,21 @@ page 70105 "PLI Test JSON Builder"
     trigger OnOpenPage()
     begin
         ImportType := 'SalesPricelist';
-        AmountTypeTxt := 'Preis';
-        HeaderStatus := "Price Status"::Active;
+        HeaderStatus := "Price Status"::Draft;
         HeaderSourceType := "Price Source Type"::Customer;
-        SourceNoVisible := true;
+        SourceNoEditable := true;
         SourceNoMandatoryHdr := true;
         HeaderValidFrom := Today();
+        HeaderAmountType := "Price Amount Type"::Price;
         HeaderErrorStyle := 'Attention';
+        // Default to current company — mirrors cockpit behaviour
+        CompanyFilter := CopyStr(CompanyName(), 1, MaxStrLen(CompanyFilter));
         // Push initial defaults so the first new line is pre-filled
         PushHeaderDefaults();
     end;
 
     var
         ImportType: Text[50];
-        AmountTypeTxt: Text[20];
         HeaderCode: Code[20];
         HeaderDescription: Text[100];
         HeaderSourceType: Enum "Price Source Type";
@@ -375,8 +495,14 @@ page 70105 "PLI Test JSON Builder"
         HeaderValidFrom: Date;
         HeaderValidTo: Date;
         HeaderStatus: Enum "Price Status";
+        HeaderVATBusPostingGroup: Code[20];
+        HeaderPriceIncludesVAT: Boolean;
+        HeaderAllowUpdatingDefaults: Boolean;
+        HeaderAllowInvoiceDisc: Boolean;
+        HeaderAllowLineDisc: Boolean;
+        HeaderAmountType: Enum "Price Amount Type";
         CompanyFilter: Text[30];
-        SourceNoVisible: Boolean;
+        SourceNoEditable: Boolean;
         SourceNoMandatoryHdr: Boolean;
         HeaderError: Text;
         HeaderErrorStyle: Text;
@@ -442,8 +568,10 @@ page 70105 "PLI Test JSON Builder"
             NewLine."Unit of Measure Code" := Item."Base Unit of Measure";
             NewLine."Minimum Quantity" := TempFilter."Minimum Quantity";
             NewLine."Unit Price" := CalcPrice;
-            NewLine."Allow Line Disc." := true;
-            NewLine."Allow Invoice Disc." := true;
+            NewLine."Allow Line Disc." := HeaderAllowLineDisc;
+            NewLine."Allow Invoice Disc." := HeaderAllowInvoiceDisc;
+            NewLine."VAT Bus. Posting Group" := HeaderVATBusPostingGroup;
+            NewLine."Price Includes VAT" := HeaderPriceIncludesVAT;
             CurrPage.LinesSubPage.Page.AddLine(NewLine);
 
             NextLineNo += 10000;
@@ -458,6 +586,8 @@ page 70105 "PLI Test JSON Builder"
     begin
         CurrPage.LinesSubPage.Page.SetHeaderDefaults(
             HeaderSourceType, HeaderSourceNo, HeaderCurrencyCode, HeaderValidFrom, HeaderValidTo);
+        CurrPage.LinesSubPage.Page.SetHeaderVATDefaults(
+            HeaderVATBusPostingGroup, HeaderPriceIncludesVAT, HeaderAllowLineDisc, HeaderAllowInvoiceDisc);
     end;
 
     local procedure SetHeaderError(ErrMsg: Text)
@@ -487,6 +617,11 @@ page 70105 "PLI Test JSON Builder"
 
         if HeaderCode = '' then begin
             SetHeaderError('"Code" ist ein Pflichtfeld. Klicken Sie auf "..." um einen Code zu generieren.');
+            exit(false);
+        end;
+
+        if HeaderDescription = '' then begin
+            SetHeaderError('"Beschreibung" ist ein Pflichtfeld.');
             exit(false);
         end;
 
@@ -544,6 +679,7 @@ page 70105 "PLI Test JSON Builder"
         TempLines: Record "PLI Test JSON Line Buffer" temporary;
         RootObj: JsonObject;
         MetaObj: JsonObject;
+        HeaderObj: JsonObject;
         PricesArr: JsonArray;
         LineObj: JsonObject;
         JsonText: Text;
@@ -563,6 +699,41 @@ page 70105 "PLI Test JSON Builder"
         else
             MetaObj.Add('validTo', '');
         RootObj.Add('metadata', MetaObj);
+
+        // ── priceListHeader block ─────────────────────────────────────────────────
+        // If a Code is set, the importer will auto-create this exact price list header.
+        // If Code is empty, the importer will look up or create per-customer draft lists.
+        HeaderObj.Add('code', HeaderCode);
+        HeaderObj.Add('description', HeaderDescription);
+        case HeaderSourceType of
+            "Price Source Type"::Customer:
+                HeaderObj.Add('sourceType', 'Customer');
+            "Price Source Type"::"All Customers":
+                HeaderObj.Add('sourceType', 'AllCustomers');
+            "Price Source Type"::"Customer Price Group":
+                HeaderObj.Add('sourceType', 'CustomerPriceGroup');
+            "Price Source Type"::"Customer Disc. Group":
+                HeaderObj.Add('sourceType', 'CustomerDiscGroup');
+            else
+                HeaderObj.Add('sourceType', '');
+        end;
+        HeaderObj.Add('sourceNo', HeaderSourceNo);
+        HeaderObj.Add('currency', HeaderCurrencyCode);
+        if HeaderValidFrom <> 0D then
+            HeaderObj.Add('validFrom', Format(HeaderValidFrom, 0, '<Year4>-<Month,2>-<Day,2>'))
+        else
+            HeaderObj.Add('validFrom', '');
+        if HeaderValidTo <> 0D then
+            HeaderObj.Add('validTo', Format(HeaderValidTo, 0, '<Year4>-<Month,2>-<Day,2>'))
+        else
+            HeaderObj.Add('validTo', '');
+        HeaderObj.Add('vatBusPostingGroup', HeaderVATBusPostingGroup);
+        HeaderObj.Add('priceIncludesVat', HeaderPriceIncludesVAT);
+        HeaderObj.Add('allowUpdatingDefaults', HeaderAllowUpdatingDefaults);
+        HeaderObj.Add('allowInvoiceDisc', HeaderAllowInvoiceDisc);
+        HeaderObj.Add('allowLineDisc', HeaderAllowLineDisc);
+        HeaderObj.Add('amountType', Format(HeaderAmountType));
+        RootObj.Add('priceListHeader', HeaderObj);
 
         CurrPage.LinesSubPage.Page.GetTempTable(TempLines);
         if TempLines.FindSet() then
@@ -597,6 +768,8 @@ page 70105 "PLI Test JSON Builder"
                     LineObj.Add('allowLineDisc', TempLines."Allow Line Disc.");
                     LineObj.Add('lineDiscountPct', TempLines."Line Discount %");
                     LineObj.Add('allowInvoiceDisc', TempLines."Allow Invoice Disc.");
+                    LineObj.Add('priceIncludesVat', TempLines."Price Includes VAT");
+                    LineObj.Add('vatBusPostingGroup', TempLines."VAT Bus. Posting Group");
                     if TempLines."Starting Date" <> 0D then
                         LineObj.Add('startingDate', Format(TempLines."Starting Date", 0, '<Year4>-<Month,2>-<Day,2>'))
                     else
@@ -625,9 +798,9 @@ page 70105 "PLI Test JSON Builder"
             CurrPage.Update(false);
             exit;
         end;
-        TempBlob.CreateOutStream(OutStream);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildJsonText());
-        TempBlob.CreateInStream(InStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         DlFileName := HeaderCode + '_' + Format(Today(), 0, '<Year4><Month,2><Day,2>') + '.json';
         DownloadFromStream(InStream, 'JSON herunterladen', '', 'JSON-Dateien (*.json)|*.json', DlFileName);
     end;
@@ -642,13 +815,13 @@ page 70105 "PLI Test JSON Builder"
             CurrPage.Update(false);
             exit;
         end;
-        TempBlob.CreateOutStream(OutStream);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildJsonText());
         PLIPriceListImport.ImportFromBlob(
             TempBlob,
             HeaderCode + '.json',
             CompanyFilter,
-            '');
+            ''); // Code is embedded in JSON priceListHeader — no separate override needed
         Message('Test-Import abgeschlossen als Entwurf. Verwenden Sie "Preisliste aktivieren" um das Ergebnis freizugeben.');
     end;
 
@@ -664,7 +837,7 @@ page 70105 "PLI Test JSON Builder"
         HeaderValidFrom := Today();
         HeaderValidTo := CalcDate('<+1Y>', Today());
         HeaderStatus := "Price Status"::Active;
-        SourceNoVisible := true;
+        SourceNoEditable := true;
         SourceNoMandatoryHdr := true;
         ClearHeaderError();
         PushHeaderDefaults();

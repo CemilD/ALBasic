@@ -20,7 +20,7 @@ page 70100 "PLI Import Cockpit"
                 {
                     Caption = 'Mandant';
                     ApplicationArea = All;
-                    ToolTip = 'Leer lassen = alle Mandanten. Mandant auswählen = nur dieser Mandant wird aktualisiert.';
+                    ToolTip = 'Standard: aktueller Mandant. Leer lassen = Import in ALLE aktiven Mandanten. Mandant auswählen = nur dieser Mandant wird aktualisiert. Achtung: Leer = alle Mandanten!';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -32,7 +32,6 @@ page 70100 "PLI Import Cockpit"
                             CompanyList.GetRecord(Company);
                             CompanyFilter := Company.Name;
                             Text := Company.Name;
-                            IsAllCompaniesStyle := 'None';
                             exit(true);
                         end;
                         exit(false);
@@ -44,13 +43,6 @@ page 70100 "PLI Import Cockpit"
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Name der ausgewählten JSON-Importdatei.';
-                }
-                field(AllCompaniesInfo; AllCompaniesInfoTxt)
-                {
-                    Caption = '';
-                    ApplicationArea = All;
-                    Editable = false;
-                    StyleExpr = IsAllCompaniesStyle;
                 }
                 field(PriceListCodeField; PriceListCode)
                 {
@@ -102,6 +94,17 @@ page 70100 "PLI Import Cockpit"
                     Caption = 'Fehlerhafte Zeilen';
                     ApplicationArea = All;
                 }
+                field(LastImportTotalLines; LastImportTotalLines)
+                {
+                    Caption = 'Gesamtzeilen';
+                    ApplicationArea = All;
+                }
+            }
+
+            part(ErrorByCompany; "PLI Errors By Company Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Fehler pro Mandant';
             }
         }
     }
@@ -155,22 +158,20 @@ page 70100 "PLI Import Cockpit"
 
     trigger OnOpenPage()
     begin
-        CompanyFilter := '';
-        AllCompaniesInfoTxt := 'Kein Mandant gewaehlt - Import in ALLE Mandanten';
-        IsAllCompaniesStyle := 'Attention';
+        // Default to the currently active company; user can clear to import into all companies
+        CompanyFilter := CopyStr(CompanyName(), 1, MaxStrLen(CompanyFilter));
         LoadLastImportInfo();
     end;
 
     var
         CompanyFilter: Text[30];
         FileName: Text[250];
-        AllCompaniesInfoTxt: Text;
-        IsAllCompaniesStyle: Text;
         PriceListCode: Code[20];
         LastImportDate: DateTime;
         LastImportStatus: Enum "PLI Import Status";
         LastImportLines: Integer;
         LastImportErrors: Integer;
+        LastImportTotalLines: Integer;
         UniqueCustomerCount: Integer;
 
     local procedure SelectAndImport()
@@ -201,7 +202,7 @@ page 70100 "PLI Import Cockpit"
         CopyStream(OutStream, UploadInStream);
 
         // Read JSON text for preview (TempBlob creates a fresh stream each time)
-        TempBlob.CreateInStream(JsonInStream);
+        TempBlob.CreateInStream(JsonInStream, TextEncoding::UTF8);
         JsonInStream.ReadText(JsonContent);
 
         // Parse metadata and show confirmation dialog
@@ -230,11 +231,13 @@ page 70100 "PLI Import Cockpit"
             LastImportStatus := ImportLog.Status;
             LastImportLines := ImportLog."Imported Lines";
             LastImportErrors := ImportLog."Error Lines";
+            LastImportTotalLines := ImportLog."Total Lines";
         end else begin
             LastImportDate := 0DT;
             LastImportStatus := LastImportStatus::" ";
             LastImportLines := 0;
             LastImportErrors := 0;
+            LastImportTotalLines := 0;
         end;
     end;
 
@@ -251,8 +254,17 @@ page 70100 "PLI Import Cockpit"
             '  "metadata": {' +
             '    "version": "1.0",' +
             '    "type": "SalesPricelist",' +
-            '    "mandant": "4101",' +
+            '    "mandant": "' + CompanyName() + '",' +
             '    "created": "' + Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>') + '",' +
+            '    "validFrom": "' + Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>') + '",' +
+            '    "validTo": "' + Format(CalcDate('<+1Y>', Today()), 0, '<Year4>-<Month,2>-<Day,2>') + '"' +
+            '  },' +
+            '  "priceListHeader": {' +
+            '    "code": "S00001",' +
+            '    "description": "Muster-Preisliste Import",' +
+            '    "sourceType": "Customer",' +
+            '    "sourceNo": "D10001",' +
+            '    "currency": "EUR",' +
             '    "validFrom": "' + Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>') + '",' +
             '    "validTo": "' + Format(CalcDate('<+1Y>', Today()), 0, '<Year4>-<Month,2>-<Day,2>') + '"' +
             '  },' +
@@ -270,9 +282,9 @@ page 70100 "PLI Import Cockpit"
             '  ]' +
             '}';
 
-        TempBlob.CreateOutStream(OutStream);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(Template);
-        TempBlob.CreateInStream(InStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         TemplateFileName := 'PriceList_Template.json';
         DownloadFromStream(InStream, 'Vorlage herunterladen', '', 'JSON-Dateien (*.json)|*.json', TemplateFileName);
     end;

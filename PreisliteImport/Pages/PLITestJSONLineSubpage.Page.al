@@ -170,6 +170,20 @@ page 70106 "PLI Test JSON Line Subpage"
                     StyleExpr = RowStyle;
                     ToolTip = 'Erlaubt Rechnungsrabatt auf dieser Zeile (allowInvoiceDisc im JSON). Standard: aktiviert.';
                 }
+                field("Price Includes VAT"; Rec."Price Includes VAT")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Preis inkl. MwSt.';
+                    StyleExpr = RowStyle;
+                    ToolTip = 'Gibt an, ob der VK-Preis dieser Zeile inkl. MwSt. ist (priceIncludesVat im JSON).';
+                }
+                field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
+                {
+                    ApplicationArea = All;
+                    Caption = 'MwSt.-Geschäftsbuchungsgruppe (Preis)';
+                    StyleExpr = RowStyle;
+                    ToolTip = 'MwSt.-Geschäftsbuchungsgruppe für den Preis dieser Zeile (vatBusPostingGroup im JSON).';
+                }
                 field("Validation Error"; Rec."Validation Error")
                 {
                     ApplicationArea = All;
@@ -204,8 +218,10 @@ page 70106 "PLI Test JSON Line Subpage"
         Rec."Starting Date" := DefValidFrom;
         Rec."Ending Date" := DefValidTo;
         Rec."Minimum Quantity" := 1;
-        Rec."Allow Line Disc." := true;
-        Rec."Allow Invoice Disc." := true;
+        Rec."Allow Line Disc." := DefAllowLineDisc;
+        Rec."Allow Invoice Disc." := DefAllowInvoiceDisc;
+        Rec."VAT Bus. Posting Group" := DefVATBusPostingGroup;
+        Rec."Price Includes VAT" := DefPriceIncludesVAT;
         SourceNoMandatory := Rec."Source Type" = "Price Source Type"::Customer;
     end;
 
@@ -218,6 +234,10 @@ page 70106 "PLI Test JSON Line Subpage"
         DefCurrencyCode: Code[10];
         DefValidFrom: Date;
         DefValidTo: Date;
+        DefVATBusPostingGroup: Code[20];
+        DefPriceIncludesVAT: Boolean;
+        DefAllowLineDisc: Boolean;
+        DefAllowInvoiceDisc: Boolean;
 
     local procedure ClearLineError()
     begin
@@ -241,6 +261,46 @@ page 70106 "PLI Test JSON Line Subpage"
         DefCurrencyCode := CurrencyCode;
         DefValidFrom := ValidFrom;
         DefValidTo := ValidTo;
+        // Note: ApplyDefaultsToCurrentLine is called by SetHeaderVATDefaults
+        // which is always invoked immediately after this procedure in PushHeaderDefaults.
+    end;
+
+    /// <summary>
+    /// Extends SetHeaderDefaults with MwSt. defaults so new lines inherit
+    /// the header-level VAT Bus. Posting Group and Price Includes VAT.
+    /// </summary>
+    procedure SetHeaderVATDefaults(VATBusPostingGroup: Code[20]; PriceIncludesVAT: Boolean; AllowLineDisc: Boolean; AllowInvoiceDisc: Boolean)
+    begin
+        DefVATBusPostingGroup := VATBusPostingGroup;
+        DefPriceIncludesVAT := PriceIncludesVAT;
+        DefAllowLineDisc := AllowLineDisc;
+        DefAllowInvoiceDisc := AllowInvoiceDisc;
+        ApplyDefaultsToCurrentLine();
+    end;
+
+    /// <summary>
+    /// Immediately applies all current header defaults to the active line record.
+    /// Called after every header-field change so the cursor line updates without
+    /// requiring the user to move away first.
+    /// </summary>
+    local procedure ApplyDefaultsToCurrentLine()
+    begin
+        if Rec."Line No." = 0 then
+            exit;
+        if not Rec.Find() then
+            exit;
+        Rec."Source Type" := DefSourceType;
+        Rec."Source No." := DefSourceNo;
+        Rec."Currency Code" := DefCurrencyCode;
+        Rec."Starting Date" := DefValidFrom;
+        Rec."Ending Date" := DefValidTo;
+        Rec."Allow Line Disc." := DefAllowLineDisc;
+        Rec."Allow Invoice Disc." := DefAllowInvoiceDisc;
+        Rec."VAT Bus. Posting Group" := DefVATBusPostingGroup;
+        Rec."Price Includes VAT" := DefPriceIncludesVAT;
+        Rec.Modify();
+        SourceNoMandatory := Rec."Source Type" = "Price Source Type"::Customer;
+        CurrPage.Update(false);
     end;
 
     /// <summary>Copies all current line records into the caller's temporary variable.</summary>

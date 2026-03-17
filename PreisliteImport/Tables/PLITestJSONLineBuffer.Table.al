@@ -142,12 +142,11 @@ table 70105 "PLI Test JSON Line Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Work Type".Code;
         }
-        /// <summary>Mirrors Price List Line "Allow Line Disc." — default true (same as Price List Line InitValue).</summary>
+        /// <summary>Mirrors Price List Line "Allow Line Disc." — default false.</summary>
         field(16; "Allow Line Disc."; Boolean)
         {
             Caption = 'Zeilenrabatt zulassen';
             DataClassification = SystemMetadata;
-            InitValue = true;
         }
         /// <summary>Mirrors Price List Line "Line Discount %".</summary>
         field(17; "Line Discount %"; Decimal)
@@ -158,12 +157,24 @@ table 70105 "PLI Test JSON Line Buffer"
             MinValue = 0;
             MaxValue = 100;
         }
-        /// <summary>Mirrors Price List Line "Allow Invoice Disc." — default true.</summary>
+        /// <summary>Mirrors Price List Line "Allow Invoice Disc." — default false.</summary>
         field(18; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Rech.-Rabatt zulassen';
             DataClassification = SystemMetadata;
-            InitValue = true;
+        }
+        /// <summary>Mirrors Price List Line "VAT Bus. Posting Gr. (Price)".</summary>
+        field(19; "VAT Bus. Posting Group"; Code[20])
+        {
+            Caption = 'MwSt.-Geschäftsbuchungsgruppe (Preis)';
+            DataClassification = SystemMetadata;
+            TableRelation = "VAT Business Posting Group";
+        }
+        /// <summary>Mirrors Price List Line "Price Includes VAT".</summary>
+        field(20; "Price Includes VAT"; Boolean)
+        {
+            Caption = 'Preis inkl. MwSt.';
+            DataClassification = SystemMetadata;
         }
     }
 
