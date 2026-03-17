@@ -31,23 +31,20 @@ codeunit 70100 "PLI Price List Import"
     /// Provide a specific company name to restrict import to that company only.
     /// </param>
     /// <param name="PriceListCode">
-    /// Optional. If provided, all imported lines are written into this existing price list.
-    /// If empty, a per-customer price list is found or created using the No. Series from
-    /// Sales &amp; Receivables Setup ("Price List Nos."). If no No. Series is configured,
-    /// a new price list with code PLI-{CustomerNo} is created.
+    /// Optional. If provided, all imported lines are written into this price list (or a
+    /// new Draft copy if it is Active). If empty, a Draft per-customer price list is
+    /// found or created using the No. Series from Sales &amp; Receivables Setup.
     /// </param>
-    /// <param name="InsertAsActive">
-    /// True (default): new price list headers and lines are set to Status = Active and
-    /// take effect immediately on the next sales document.
-    /// False: inserted as Draft for manual review before activation in BC.
-    /// Note: the Best-Price principle applies after activation — if another price list
-    /// offers a lower price for the same item, BC will use that lower price instead.
-    /// </param>
-    procedure ImportFromBlob(var TempBlob: Codeunit "Temp Blob"; FileName: Text; CompanyFilter: Text[30]; PriceListCode: Code[20]; InsertAsActive: Boolean)
+    /// <remarks>
+    /// DRAFT-ONLY: Import ALWAYS creates Draft headers and lines.
+    /// Use Page 70108 "PLI Activate Price List" or Codeunit "PLI Price List Activation"
+    /// to move lists from Draft to Active after review.
+    /// </remarks>
+    procedure ImportFromBlob(var TempBlob: Codeunit "Temp Blob"; FileName: Text; CompanyFilter: Text[30]; PriceListCode: Code[20])
     var
         PLIPriceListImportImpl: Codeunit "PLI Price List Import Impl.";
     begin
-        PLIPriceListImportImpl.ImportFromBlob(TempBlob, FileName, CompanyFilter, PriceListCode, InsertAsActive);
+        PLIPriceListImportImpl.ImportFromBlob(TempBlob, FileName, CompanyFilter, PriceListCode);
     end;
 
     /// <summary>

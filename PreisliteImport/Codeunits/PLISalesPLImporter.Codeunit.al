@@ -3,6 +3,17 @@
 /// Handles JSON type 'SalesPricelist': upserts Price List Header + Price List Line
 /// in the target company using ChangeCompany for cross-company access.
 ///
+/// DRAFT-ONLY POLICY:
+///   Imported price lists are ALWAYS written as Draft (Status = Draft).
+///   Activation is only possible through the explicit "PLI Activate Price List" page
+///   or Codeunit "PLI Price List Activation". The guardrail codeunit
+///   "PLI Price List Guardrail" blocks any direct Active insert/modify.
+///
+/// Active-target handling:
+///   If the target price list (by override code or found by customer+currency) is
+///   already Active, a new Draft copy is created with a fresh No. Series code.
+///   The original Active list is not touched.
+///
 /// To add Purchase price list support, create a new codeunit with this same
 /// structure, register it in enum "PLI Importer Type" — no other change needed.
 /// </summary>
@@ -16,14 +27,12 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
     end;
 
     /// <summary>
-    /// Controls whether new price list lines are inserted as Active or Draft.
-    /// Default is Active (direct effect). Set to false to insert as Draft
-    /// for manual review before activation.
+    /// SetInsertAsActive is kept for interface compatibility but intentionally ignored.
+    /// This implementation ALWAYS inserts as Draft. Activation is a separate step.
     /// </summary>
     procedure SetInsertAsActive(Value: Boolean)
     begin
-        InsertAsActive := Value;
-        InsertAsActiveInitialized := true;
+        // Intentionally ignored — import always creates Draft. Use PLI Price List Activation.
     end;
 
     procedure UpsertToCompany(var LogLine: Record "PLI Import Log Line"; CompanyName: Text[30]): Enum "PLI Line Import Status"
@@ -53,10 +62,6 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
                 LogLine."Error Message" := StrSubstNo('Preisliste "%1" nicht gefunden.', LogLine."Price List Code");
                 exit("PLI Line Import Status"::Error);
             end;
-            if PriceListHeader.Status <> PriceListHeader.Status::Active then begin
-                LogLine."Error Message" := StrSubstNo('Preisliste "%1" ist nicht aktiv.', LogLine."Price List Code");
-                exit("PLI Line Import Status"::Error);
-            end;
             if (PriceListHeader."Source Type" = PriceListHeader."Source Type"::Customer)
                 and (PriceListHeader."Source No." <> LogLine."Customer No.")
             then begin
@@ -65,9 +70,13 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
                     LogLine."Price List Code", PriceListHeader."Source No.", LogLine."Customer No.");
                 exit("PLI Line Import Status"::Error);
             end;
-            PriceListCode := LogLine."Price List Code";
+            // DRAFT POLICY: if the target list is Active, create a new Draft copy instead
+            if PriceListHeader.Status = PriceListHeader.Status::Active then
+                PriceListCode := CreateDraftCopyCode(PriceListHeader, LogLine."Customer No.", LogLine."Currency Code")
+            else
+                PriceListCode := LogLine."Price List Code";
         end else
-            PriceListCode := FindOrCreateHeaderCode(LogLine."Customer No.", LogLine."Currency Code", PriceListHeader);
+            PriceListCode := FindOrCreateDraftHeaderCode(LogLine."Customer No.", LogLine."Currency Code", PriceListHeader);
 
         PriceListLine.SetLoadFields("Price List Code", "Asset No.", "Unit of Measure Code", "Minimum Quantity", "Starting Date", "Ending Date", "Unit Price");
         PriceListLine.SetRange("Price List Code", PriceListCode);
@@ -86,11 +95,8 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListLine.Init();
         PriceListLine."Price List Code" := PriceListCode;
         PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
-        // #2 Use Validate on Source No. and Asset No. so BC OnValidate triggers run
-        // and dependent fields (description, derived types) are filled automatically.
         PriceListLine.Validate("Source Type", PriceListLine."Source Type"::Customer);
         PriceListLine.Validate("Source No.", LogLine."Customer No.");
-        // #1 Source Group must be set explicitly on the line for BC price finding to work
         PriceListLine."Source Group" := "Price Source Group"::Customer;
         PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
         PriceListLine.Validate("Asset No.", LogLine."Item No.");
@@ -101,35 +107,34 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListLine."Starting Date" := LogLine."Starting Date";
         PriceListLine."Ending Date" := LogLine."Ending Date";
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Price;
-        // #4 Draft mode: insert as Draft or Active depending on caller setting
-        if GetInsertAsActive() then
-            PriceListLine.Status := PriceListLine.Status::Active
-        else
-            PriceListLine.Status := PriceListLine.Status::Draft;
+        // DRAFT POLICY: lines are always Draft — activation is a separate step
+        PriceListLine.Status := PriceListLine.Status::Draft;
         PriceListLine.Insert(true);
         exit("PLI Line Import Status"::Imported);
     end;
 
     /// <summary>
-    /// Returns the Code of an existing Sales Price List Header for the given
-    /// customer and currency, or creates a new one if none exists.
-    /// Note: PriceListHeader must already have ChangeCompany set by the caller.
+    /// Finds an existing DRAFT Sales Price List Header for the given customer/currency,
+    /// or creates a new Draft one. If only an Active header exists, a new Draft is created
+    /// alongside it (so the Active list is never touched by the import).
     /// </summary>
-    local procedure FindOrCreateHeaderCode(CustomerNo: Code[20]; CurrencyCode: Code[10]; var PriceListHeader: Record "Price List Header"): Code[20]
+    local procedure FindOrCreateDraftHeaderCode(CustomerNo: Code[20]; CurrencyCode: Code[10]; var PriceListHeader: Record "Price List Header"): Code[20]
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         NoSeries: Codeunit "No. Series";
         NextCode: Code[20];
     begin
-        PriceListHeader.SetLoadFields(Code);
+        // Prefer an existing Draft header for the same customer+currency
+        PriceListHeader.SetLoadFields(Code, Status);
         PriceListHeader.SetRange("Price Type", PriceListHeader."Price Type"::Sale);
         PriceListHeader.SetRange("Source Type", PriceListHeader."Source Type"::Customer);
         PriceListHeader.SetRange("Source No.", CustomerNo);
         PriceListHeader.SetRange("Currency Code", CurrencyCode);
+        PriceListHeader.SetRange(Status, PriceListHeader.Status::Draft);
         if PriceListHeader.FindFirst() then
             exit(PriceListHeader.Code);
 
-        // Determine new code: No. Series from Sales Setup → fallback PLI-{CustomerNo}
+        // No Draft found — create a new one
         SalesReceivablesSetup.Get();
         if SalesReceivablesSetup."Price List Nos." <> '' then
             NextCode := CopyStr(NoSeries.GetNextNo(SalesReceivablesSetup."Price List Nos.", Today()), 1, 20)
@@ -144,29 +149,42 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListHeader."Source No." := CustomerNo;
         PriceListHeader."Currency Code" := CurrencyCode;
         PriceListHeader.Description := StrSubstNo('JSON Import - Customer %1', CustomerNo);
-        // #4 New header status follows InsertAsActive setting
-        if GetInsertAsActive() then
-            PriceListHeader.Status := PriceListHeader.Status::Active
-        else
-            PriceListHeader.Status := PriceListHeader.Status::Draft;
+        // DRAFT POLICY: always Draft on import
+        PriceListHeader.Status := PriceListHeader.Status::Draft;
         PriceListHeader.Insert(true);
-
         exit(PriceListHeader.Code);
     end;
 
-    var
-        InsertAsActive: Boolean; // default false (= Active) intentionally; SetInsertAsActive(true) = Active
-        InsertAsActiveInitialized: Boolean;
-
     /// <summary>
-    /// Returns the effective InsertAsActive flag, defaulting to true (Active) if
-    /// SetInsertAsActive was never called. A codeunit-level field defaults to false in AL,
-    /// so we track initialisation separately.
+    /// Creates a new Draft copy of an Active price list header and returns its code.
+    /// Called when the user explicitly selected an Active list as override target.
+    /// The new list is a sibling (same customer/currency) but with Draft status.
     /// </summary>
-    local procedure GetInsertAsActive(): Boolean
+    local procedure CreateDraftCopyCode(var SourceHeader: Record "Price List Header"; CustomerNo: Code[20]; CurrencyCode: Code[10]): Code[20]
+    var
+        NewHeader: Record "Price List Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NoSeries: Codeunit "No. Series";
+        NextCode: Code[20];
     begin
-        if not InsertAsActiveInitialized then
-            exit(true);
-        exit(InsertAsActive);
+        NewHeader.ChangeCompany(SourceHeader.CurrentCompany);
+        SalesReceivablesSetup.Get();
+        if SalesReceivablesSetup."Price List Nos." <> '' then
+            NextCode := CopyStr(NoSeries.GetNextNo(SalesReceivablesSetup."Price List Nos.", Today()), 1, 20)
+        else
+            NextCode := CopyStr('PLI-' + CustomerNo + '-D', 1, 20);
+
+        NewHeader.Init();
+        NewHeader.Code := NextCode;
+        NewHeader."Price Type" := SourceHeader."Price Type";
+        NewHeader."Source Type" := SourceHeader."Source Type";
+        NewHeader."Source Group" := SourceHeader."Source Group";
+        NewHeader."Source No." := CustomerNo;
+        NewHeader."Currency Code" := CurrencyCode;
+        NewHeader.Description := StrSubstNo('JSON Import (Entwurf) - %1', SourceHeader.Code);
+        // DRAFT POLICY: new copy is always Draft
+        NewHeader.Status := NewHeader.Status::Draft;
+        NewHeader.Insert(true);
+        exit(NewHeader.Code);
     end;
 }

@@ -6,7 +6,7 @@ codeunit 70101 "PLI Price List Import Impl."
     // Entry points (called from facade)
     // ------------------------------------------------------------------
 
-    procedure ImportFromBlob(var TempBlob: Codeunit "Temp Blob"; FileName: Text; CompanyFilter: Text[30]; PriceListCode: Code[20]; InsertAsActive: Boolean)
+    procedure ImportFromBlob(var TempBlob: Codeunit "Temp Blob"; FileName: Text; CompanyFilter: Text[30]; PriceListCode: Code[20])
     var
         PLIImportLog: Record "PLI Import Log";
         JsonInStream: InStream;
@@ -16,7 +16,7 @@ codeunit 70101 "PLI Price List Import Impl."
         JsonInStream.ReadText(JsonContent);
 
         CreateImportLog(PLIImportLog, FileName, CompanyFilter, PriceListCode);
-        ParseAndImport(PLIImportLog, JsonContent, CompanyFilter, InsertAsActive);
+        ParseAndImport(PLIImportLog, JsonContent, CompanyFilter);
         UpdateImportLogStatus(PLIImportLog);
     end;
 
@@ -38,7 +38,7 @@ codeunit 70101 "PLI Price List Import Impl."
         ImportLog."JSON Content".CreateInStream(JsonInStream);
         JsonInStream.ReadText(JsonContent);
 
-        ParseAndImport(ImportLog, JsonContent, ImportLog."Company Filter", true);
+        ParseAndImport(ImportLog, JsonContent, ImportLog."Company Filter");
         UpdateImportLogStatus(ImportLog);
     end;
 
@@ -138,7 +138,7 @@ codeunit 70101 "PLI Price List Import Impl."
     // JSON parsing & dispatch
     // ------------------------------------------------------------------
 
-    local procedure ParseAndImport(var ImportLog: Record "PLI Import Log"; JsonContent: Text; CompanyFilter: Text[30]; InsertAsActive: Boolean)
+    local procedure ParseAndImport(var ImportLog: Record "PLI Import Log"; JsonContent: Text; CompanyFilter: Text[30])
     var
         JsonObj: JsonObject;
         PricesToken: JsonToken;
@@ -160,8 +160,8 @@ codeunit 70101 "PLI Price List Import Impl."
             exit;
         end;
 
-        // #4 Pass draft/active setting to the importer implementation
-        Importer.SetInsertAsActive(InsertAsActive);
+        // SetInsertAsActive is intentionally a no-op in the importer — always Draft
+        Importer.SetInsertAsActive(false);
 
         if not JsonObj.Get('prices', PricesToken) then begin
             SetImportLogFailed(ImportLog, 'JSON does not contain a "prices" array.');

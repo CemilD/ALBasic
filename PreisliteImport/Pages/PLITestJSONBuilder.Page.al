@@ -329,6 +329,14 @@ page 70105 "PLI Test JSON Builder"
                 RunObject = Page "PLI Import Log List";
                 ToolTip = 'Import-Protokoll oeffnen um das Testergebnis zu pruefen.';
             }
+            action(ActivatePriceLists)
+            {
+                Caption = 'Preislisten aktivieren...';
+                ApplicationArea = All;
+                Image = Approve;
+                RunObject = Page "PLI Activate Price List";
+                ToolTip = 'Als Entwurf importierte Preislisten nach Pruefung auf Aktiv setzen.';
+            }
         }
 
         area(Promoted)
@@ -631,9 +639,8 @@ page 70105 "PLI Test JSON Builder"
             TempBlob,
             HeaderCode + '.json',
             CompanyFilter,
-            '',
-            HeaderStatus = "Price Status"::Active);
-        Message('Test-Import abgeschlossen. Ergebnis im Import-Log pruefen.');
+            '');
+        Message('Test-Import abgeschlossen als Entwurf. Verwenden Sie "Preisliste aktivieren" um das Ergebnis freizugeben.');
     end;
 
     local procedure PopulateSampleData()

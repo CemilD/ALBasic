@@ -122,6 +122,14 @@ page 70100 "PLI Import Cockpit"
                     SelectAndImport();
                 end;
             }
+            action(ActivatePriceLists)
+            {
+                Caption = 'Preislisten aktivieren...';
+                ApplicationArea = All;
+                Image = Approve;
+                RunObject = Page "PLI Activate Price List";
+                ToolTip = 'Als Entwurf importierte Preislisten nach Pruefung auf Aktiv setzen. Nur aktivierte Listen wirken in Verkaufsbelegen.';
+            }
             action(ViewLog)
             {
                 Caption = 'Import-Log';
@@ -204,12 +212,11 @@ page 70100 "PLI Import Cockpit"
         if not PLIImportPreview.IsImportConfirmed() then
             exit;
 
-        // #4 Draft mode: user chooses in preview dialog; InsertAsActive = not Draft
-        // Run actual import (TempBlob stream is re-created internally)
-        PLIPriceListImport.ImportFromBlob(TempBlob, FileName, CompanyFilter, PriceListCode, not PLIImportPreview.IsInsertAsDraft());
+        // Run actual import — always Draft, activation is a separate step
+        PLIPriceListImport.ImportFromBlob(TempBlob, FileName, CompanyFilter, PriceListCode);
 
         LoadLastImportInfo();
-        Message('Import abgeschlossen. Pruefen Sie den Import-Log fuer Details.');
+        Message('Import abgeschlossen als Entwurf. Verwenden Sie "Preisliste aktivieren" um importierte Listen freizugeben.');
     end;
 
     local procedure LoadLastImportInfo()

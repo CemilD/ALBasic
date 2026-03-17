@@ -81,12 +81,6 @@ page 70104 "PLI Import Preview"
                     Editable = false;
                     ToolTip = 'Mandant, in den die Preisliste importiert wird.';
                 }
-                field(InsertAsDraftField; InsertAsDraftVal)
-                {
-                    Caption = 'Als Entwurf importieren';
-                    ApplicationArea = All;
-                    ToolTip = 'Aktiviert: Neue Preislisten und -zeilen werden als Entwurf angelegt und müssen manuell freigegeben werden, bevor sie in Belegen wirken. Deaktiviert (Standard): Direkt aktiv — wirkt sofort im nächsten Verkaufsbeleg.';
-                }
                 field(WarningField; WarningTxt)
                 {
                     Caption = '';
@@ -139,7 +133,6 @@ page 70104 "PLI Import Preview"
         ValidFromVal: Date;
         ValidToVal: Date;
         CompanyFilterVal: Text[30];
-        InsertAsDraftVal: Boolean;
         WarningTxt: Text;
         WarningStyle: Text;
         ImportConfirmed: Boolean;
@@ -160,7 +153,8 @@ page 70104 "PLI Import Preview"
         LineCountVal := LineCount;
         ValidFromVal := ValidFrom;
         ValidToVal := ValidTo;
-        InsertAsDraftVal := false; // default: direct active
+        // Draft-only note is always shown in the warning block
+        WarningLines.Add('Hinweis: Import erstellt immer einen Entwurf. Preislisten muessen nach Pruefung separat aktiviert werden.');
 
         if CompanyFilter = '' then begin
             CompanyFilterVal := '(Alle Mandanten)';
@@ -196,14 +190,5 @@ page 70104 "PLI Import Preview"
     procedure IsImportConfirmed(): Boolean
     begin
         exit(ImportConfirmed);
-    end;
-
-    /// <summary>
-    /// Returns false = insert as Active (default), true = insert as Draft.
-    /// Must be checked after RunModal() returns.
-    /// </summary>
-    procedure IsInsertAsDraft(): Boolean
-    begin
-        exit(InsertAsDraftVal);
     end;
 }
