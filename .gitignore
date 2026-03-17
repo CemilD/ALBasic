@@ -1,5 +1,6 @@
 *.app
 *.flf
+.txt
 *.bclicense
 *.g.xlf
 .DS_Store
