@@ -65,6 +65,31 @@ table 70101 "PLI Import Log Line"
             Caption = 'Price List Code';
             ToolTip = 'Preislistencode der verwendeten oder neu erstellten Preisliste.';
         }
+        /// <summary>Mirrors Price List Line "Work Type Code". Relevant for Resource lines; usually empty for Items.</summary>
+        field(15; "Work Type Code"; Code[10])
+        {
+            Caption = 'Work Type Code';
+        }
+        /// <summary>Mirrors Price List Line "Allow Line Disc."</summary>
+        field(16; "Allow Line Disc."; Boolean)
+        {
+            Caption = 'Allow Line Disc.';
+            InitValue = true;
+        }
+        /// <summary>Mirrors Price List Line "Line Discount %"</summary>
+        field(17; "Line Discount %"; Decimal)
+        {
+            Caption = 'Line Discount %';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            MaxValue = 100;
+        }
+        /// <summary>Mirrors Price List Line "Allow Invoice Disc."</summary>
+        field(18; "Allow Invoice Disc."; Boolean)
+        {
+            Caption = 'Allow Invoice Disc.';
+            InitValue = true;
+        }
     }
 
     keys

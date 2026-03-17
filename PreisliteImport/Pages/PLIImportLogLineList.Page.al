@@ -22,6 +22,10 @@ page 70103 "PLI Import Log Line List"
                 field("Currency Code"; Rec."Currency Code") { ApplicationArea = All; }
                 field("Starting Date"; Rec."Starting Date") { ApplicationArea = All; }
                 field("Ending Date"; Rec."Ending Date") { ApplicationArea = All; }
+                field("Work Type Code"; Rec."Work Type Code") { ApplicationArea = All; }
+                field("Allow Line Disc."; Rec."Allow Line Disc.") { ApplicationArea = All; }
+                field("Line Discount %"; Rec."Line Discount %") { ApplicationArea = All; }
+                field("Allow Invoice Disc."; Rec."Allow Invoice Disc.") { ApplicationArea = All; }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;

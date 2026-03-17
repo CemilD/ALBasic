@@ -248,6 +248,9 @@ codeunit 70101 "PLI Price List Import Impl."
     end;
 
     local procedure PopulateLogLineFromJson(var PLIImportLogLine: Record "PLI Import Log Line"; LineObj: JsonObject)
+    var
+        AllowLineDiscToken: JsonToken;
+        AllowInvDiscToken: JsonToken;
     begin
         PLIImportLogLine."Customer No." := CopyStr(GetJsonText(LineObj, 'customerNo'), 1, 20);
         PLIImportLogLine."Item No." := CopyStr(GetJsonText(LineObj, 'itemNo'), 1, 20);
@@ -257,6 +260,17 @@ codeunit 70101 "PLI Price List Import Impl."
         PLIImportLogLine."Currency Code" := CopyStr(GetJsonText(LineObj, 'currency'), 1, 10);
         PLIImportLogLine."Starting Date" := GetJsonDate(LineObj, 'startingDate');
         PLIImportLogLine."Ending Date" := GetJsonDate(LineObj, 'endingDate');
+        PLIImportLogLine."Work Type Code" := CopyStr(GetJsonText(LineObj, 'workTypeCode'), 1, 10);
+        PLIImportLogLine."Line Discount %" := GetJsonDecimal(LineObj, 'lineDiscountPct');
+        // Boolean fields: default to true when not present in JSON (matches BC Price List Line InitValue)
+        if LineObj.Get('allowLineDisc', AllowLineDiscToken) then
+            PLIImportLogLine."Allow Line Disc." := AllowLineDiscToken.AsValue().AsBoolean()
+        else
+            PLIImportLogLine."Allow Line Disc." := true;
+        if LineObj.Get('allowInvoiceDisc', AllowInvDiscToken) then
+            PLIImportLogLine."Allow Invoice Disc." := AllowInvDiscToken.AsValue().AsBoolean()
+        else
+            PLIImportLogLine."Allow Invoice Disc." := true;
     end;
 
     local procedure ImportToAllCompanies(var ImportLog: Record "PLI Import Log"; var PLIImportLogLine: Record "PLI Import Log Line"; Importer: Interface "IPLIPriceListImporter")

@@ -115,6 +115,13 @@ page 70106 "PLI Test JSON Line Subpage"
                     Caption = 'Variantencode';
                     StyleExpr = RowStyle;
                 }
+                field("Work Type Code"; Rec."Work Type Code")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Arbeitstypencode';
+                    StyleExpr = RowStyle;
+                    ToolTip = 'Arbeitstypencode (workTypeCode im JSON). Nur relevant fuer Ressourcenpreise; fuer Artikel leer lassen.';
+                }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = All;
@@ -141,6 +148,27 @@ page 70106 "PLI Test JSON Line Subpage"
                     begin
                         ClearLineError();
                     end;
+                }
+                field("Allow Line Disc."; Rec."Allow Line Disc.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Zeilenrabatt zulassen';
+                    StyleExpr = RowStyle;
+                    ToolTip = 'Erlaubt einen Zeilenrabatt auf Preislistenzeilen-Ebene (allowLineDisc im JSON). Standard: aktiviert.';
+                }
+                field("Line Discount %"; Rec."Line Discount %")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Zeilenrabatt %';
+                    StyleExpr = RowStyle;
+                    ToolTip = 'Fester Zeilenrabattprozentsatz (lineDiscountPct im JSON). 0 = kein Rabatt.';
+                }
+                field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Rech.-Rabatt zulassen';
+                    StyleExpr = RowStyle;
+                    ToolTip = 'Erlaubt Rechnungsrabatt auf dieser Zeile (allowInvoiceDisc im JSON). Standard: aktiviert.';
                 }
                 field("Validation Error"; Rec."Validation Error")
                 {
@@ -176,6 +204,8 @@ page 70106 "PLI Test JSON Line Subpage"
         Rec."Starting Date" := DefValidFrom;
         Rec."Ending Date" := DefValidTo;
         Rec."Minimum Quantity" := 1;
+        Rec."Allow Line Disc." := true;
+        Rec."Allow Invoice Disc." := true;
         SourceNoMandatory := Rec."Source Type" = "Price Source Type"::Customer;
     end;
 

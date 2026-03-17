@@ -135,6 +135,36 @@ table 70105 "PLI Test JSON Line Buffer"
                 end;
             end;
         }
+        /// <summary>Mirrors Price List Line "Work Type Code". Relevant for Resource lines; usually empty for Items.</summary>
+        field(15; "Work Type Code"; Code[10])
+        {
+            Caption = 'Arbeitstypencode';
+            DataClassification = SystemMetadata;
+            TableRelation = "Work Type".Code;
+        }
+        /// <summary>Mirrors Price List Line "Allow Line Disc." — default true (same as Price List Line InitValue).</summary>
+        field(16; "Allow Line Disc."; Boolean)
+        {
+            Caption = 'Zeilenrabatt zulassen';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+        }
+        /// <summary>Mirrors Price List Line "Line Discount %".</summary>
+        field(17; "Line Discount %"; Decimal)
+        {
+            Caption = 'Zeilenrabatt %';
+            DataClassification = SystemMetadata;
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            MaxValue = 100;
+        }
+        /// <summary>Mirrors Price List Line "Allow Invoice Disc." — default true.</summary>
+        field(18; "Allow Invoice Disc."; Boolean)
+        {
+            Caption = 'Rech.-Rabatt zulassen';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+        }
     }
 
     keys

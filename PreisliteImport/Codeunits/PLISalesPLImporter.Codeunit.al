@@ -191,6 +191,11 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListLine."Starting Date" := LogLine."Starting Date";
         PriceListLine."Ending Date" := LogLine."Ending Date";
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Price;
+        if LogLine."Work Type Code" <> '' then
+            PriceListLine."Work Type Code" := LogLine."Work Type Code";
+        PriceListLine."Allow Line Disc." := LogLine."Allow Line Disc.";
+        PriceListLine."Line Discount %" := LogLine."Line Discount %";
+        PriceListLine."Allow Invoice Disc." := LogLine."Allow Invoice Disc.";
         // DRAFT POLICY: always Draft — activation is a separate step
         PriceListLine.Status := PriceListLine.Status::Draft;
         PriceListLine.Insert(true);

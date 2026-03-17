@@ -442,6 +442,8 @@ page 70105 "PLI Test JSON Builder"
             NewLine."Unit of Measure Code" := Item."Base Unit of Measure";
             NewLine."Minimum Quantity" := TempFilter."Minimum Quantity";
             NewLine."Unit Price" := CalcPrice;
+            NewLine."Allow Line Disc." := true;
+            NewLine."Allow Invoice Disc." := true;
             CurrPage.LinesSubPage.Page.AddLine(NewLine);
 
             NextLineNo += 10000;
@@ -588,6 +590,13 @@ page 70105 "PLI Test JSON Builder"
                     LineObj.Add('minimumQuantity', TempLines."Minimum Quantity");
                     LineObj.Add('unitPrice', TempLines."Unit Price");
                     LineObj.Add('currency', EffCurrency);
+                    if TempLines."Work Type Code" <> '' then
+                        LineObj.Add('workTypeCode', TempLines."Work Type Code")
+                    else
+                        LineObj.Add('workTypeCode', '');
+                    LineObj.Add('allowLineDisc', TempLines."Allow Line Disc.");
+                    LineObj.Add('lineDiscountPct', TempLines."Line Discount %");
+                    LineObj.Add('allowInvoiceDisc', TempLines."Allow Invoice Disc.");
                     if TempLines."Starting Date" <> 0D then
                         LineObj.Add('startingDate', Format(TempLines."Starting Date", 0, '<Year4>-<Month,2>-<Day,2>'))
                     else
@@ -674,6 +683,8 @@ page 70105 "PLI Test JSON Builder"
         SampleLine."Unit of Measure Code" := 'STK';
         SampleLine."Minimum Quantity" := 1;
         SampleLine."Unit Price" := 125.50;
+        SampleLine."Allow Line Disc." := true;
+        SampleLine."Allow Invoice Disc." := true;
         CurrPage.LinesSubPage.Page.AddLine(SampleLine);
 
         CurrPage.Update(false);
