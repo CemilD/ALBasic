@@ -50,6 +50,12 @@ table 70100 "PLI Import Log"
         {
             Caption = 'JSON Content';
         }
+        field(12; "Price List Code"; Code[20])
+        {
+            Caption = 'Price List Code';
+            ToolTip = 'Optionaler Preislistencode. Leer = Nummernserie aus Deb. Einrichtung wird gezogen.';
+            TableRelation = "Price List Header".Code;
+        }
     }
 
     keys

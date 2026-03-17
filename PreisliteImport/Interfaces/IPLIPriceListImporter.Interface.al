@@ -16,6 +16,13 @@ interface "IPLIPriceListImporter"
     procedure GetImportType(): Text[50];
 
     /// <summary>
+    /// Controls whether newly created price list headers and lines receive
+    /// Status = Active (true, default) or Status = Draft (false).
+    /// Must be called before UpsertToCompany.
+    /// </summary>
+    procedure SetInsertAsActive(Value: Boolean);
+
+    /// <summary>
     /// Upserts the price described by LogLine into the specified company context.
     /// The implementation must call ChangeCompany on any records it accesses.
     /// On failure, set LogLine."Error Message" before returning Error status.

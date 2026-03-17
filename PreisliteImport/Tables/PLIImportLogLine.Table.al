@@ -60,6 +60,11 @@ table 70101 "PLI Import Log Line"
         {
             Caption = 'Company Name';
         }
+        field(14; "Price List Code"; Code[20])
+        {
+            Caption = 'Price List Code';
+            ToolTip = 'Preislistencode der verwendeten oder neu erstellten Preisliste.';
+        }
     }
 
     keys

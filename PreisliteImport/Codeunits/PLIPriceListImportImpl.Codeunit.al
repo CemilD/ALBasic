@@ -6,7 +6,7 @@ codeunit 70101 "PLI Price List Import Impl."
     // Entry points (called from facade)
     // ------------------------------------------------------------------
 
-    procedure ImportFromBlob(var TempBlob: Codeunit "Temp Blob"; FileName: Text; CompanyFilter: Text[30])
+    procedure ImportFromBlob(var TempBlob: Codeunit "Temp Blob"; FileName: Text; CompanyFilter: Text[30]; PriceListCode: Code[20]; InsertAsActive: Boolean)
     var
         PLIImportLog: Record "PLI Import Log";
         JsonInStream: InStream;
@@ -15,8 +15,8 @@ codeunit 70101 "PLI Price List Import Impl."
         TempBlob.CreateInStream(JsonInStream);
         JsonInStream.ReadText(JsonContent);
 
-        CreateImportLog(PLIImportLog, FileName, CompanyFilter);
-        ParseAndImport(PLIImportLog, JsonContent, CompanyFilter);
+        CreateImportLog(PLIImportLog, FileName, CompanyFilter, PriceListCode);
+        ParseAndImport(PLIImportLog, JsonContent, CompanyFilter, InsertAsActive);
         UpdateImportLogStatus(PLIImportLog);
     end;
 
@@ -25,6 +25,10 @@ codeunit 70101 "PLI Price List Import Impl."
         JsonInStream: InStream;
         JsonContent: Text;
     begin
+        // #8 Guard: skip log entries that have already been processed successfully
+        if ImportLog.Status = ImportLog.Status::Success then
+            exit;
+
         ImportLog."Import DateTime" := CurrentDateTime();
         ImportLog."User ID" := CopyStr(UserId(), 1, 50);
         ImportLog.Status := ImportLog.Status::Running;
@@ -34,15 +38,16 @@ codeunit 70101 "PLI Price List Import Impl."
         ImportLog."JSON Content".CreateInStream(JsonInStream);
         JsonInStream.ReadText(JsonContent);
 
-        ParseAndImport(ImportLog, JsonContent, ImportLog."Company Filter");
+        ParseAndImport(ImportLog, JsonContent, ImportLog."Company Filter", true);
         UpdateImportLogStatus(ImportLog);
     end;
 
     /// <summary>
-    /// Parses JSON metadata and prices array length without any DB writes.
+    /// Parses JSON metadata and prices array without any DB writes.
     /// Called by the facade's GetPreviewData for the import preview dialog.
+    /// UniqueCustomerCount = number of distinct 'customerNo' values in the prices array.
     /// </summary>
-    procedure ParseJsonMetadata(JsonContent: Text; var ImportType: Text[50]; var ValidFrom: Date; var ValidTo: Date; var LineCount: Integer)
+    procedure ParseJsonMetadata(JsonContent: Text; var ImportType: Text[50]; var ValidFrom: Date; var ValidTo: Date; var LineCount: Integer; var UniqueCustomerCount: Integer)
     var
         JsonObj: JsonObject;
         MetaToken: JsonToken;
@@ -50,7 +55,13 @@ codeunit 70101 "PLI Price List Import Impl."
         ValidFromToken: JsonToken;
         ValidToToken: JsonToken;
         PricesToken: JsonToken;
+        PricesArray: JsonArray;
+        PriceToken: JsonToken;
+        CustToken: JsonToken;
+        CustomerSet: Dictionary of [Text, Boolean];
+        CustNo: Text;
         DateText: Text;
+        i: Integer;
     begin
         if not JsonObj.ReadFrom(JsonContent) then
             exit;
@@ -72,21 +83,34 @@ codeunit 70101 "PLI Price List Import Impl."
             end;
         end;
 
-        if JsonObj.Get('prices', PricesToken) then
-            LineCount := PricesToken.AsArray().Count();
+        if JsonObj.Get('prices', PricesToken) then begin
+            PricesArray := PricesToken.AsArray();
+            LineCount := PricesArray.Count();
+            // #7 Count distinct customer numbers for multi-customer warning
+            for i := 0 to PricesArray.Count() - 1 do begin
+                PricesArray.Get(i, PriceToken);
+                if PriceToken.AsObject().Get('customerNo', CustToken) then begin
+                    CustNo := CustToken.AsValue().AsText();
+                    if not CustomerSet.ContainsKey(CustNo) then
+                        CustomerSet.Add(CustNo, true);
+                end;
+            end;
+            UniqueCustomerCount := CustomerSet.Count();
+        end;
     end;
 
     // ------------------------------------------------------------------
     // Log management
     // ------------------------------------------------------------------
 
-    local procedure CreateImportLog(var ImportLog: Record "PLI Import Log"; FileName: Text; CompanyFilter: Text[30])
+    local procedure CreateImportLog(var ImportLog: Record "PLI Import Log"; FileName: Text; CompanyFilter: Text[30]; PriceListCode: Code[20])
     begin
         ImportLog.Init();
         ImportLog."Import DateTime" := CurrentDateTime();
         ImportLog."User ID" := CopyStr(UserId(), 1, 50);
         ImportLog."File Name" := CopyStr(FileName, 1, 250);
         ImportLog."Company Filter" := CompanyFilter;
+        ImportLog."Price List Code" := PriceListCode;
         ImportLog.Status := ImportLog.Status::Running;
         ImportLog.Insert(true);
     end;
@@ -114,7 +138,7 @@ codeunit 70101 "PLI Price List Import Impl."
     // JSON parsing & dispatch
     // ------------------------------------------------------------------
 
-    local procedure ParseAndImport(var ImportLog: Record "PLI Import Log"; JsonContent: Text; CompanyFilter: Text[30])
+    local procedure ParseAndImport(var ImportLog: Record "PLI Import Log"; JsonContent: Text; CompanyFilter: Text[30]; InsertAsActive: Boolean)
     var
         JsonObj: JsonObject;
         PricesToken: JsonToken;
@@ -135,6 +159,9 @@ codeunit 70101 "PLI Price List Import Impl."
             SetImportLogFailed(ImportLog, StrSubstNo('Unsupported import type "%1".', ImportType));
             exit;
         end;
+
+        // #4 Pass draft/active setting to the importer implementation
+        Importer.SetInsertAsActive(InsertAsActive);
 
         if not JsonObj.Get('prices', PricesToken) then begin
             SetImportLogFailed(ImportLog, 'JSON does not contain a "prices" array.');
@@ -200,6 +227,7 @@ codeunit 70101 "PLI Price List Import Impl."
         PLIImportLogLine."Entry No." := ImportLog."Entry No.";
         PLIImportLogLine."Line No." := LineNo;
         PLIImportLogLine."Company Name" := CompanyFilter;
+        PLIImportLogLine."Price List Code" := ImportLog."Price List Code";
         PopulateLogLineFromJson(PLIImportLogLine, LineObj);
 
         if (PLIImportLogLine."Customer No." = '') or (PLIImportLogLine."Item No." = '') then begin

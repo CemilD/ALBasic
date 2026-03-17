@@ -58,12 +58,15 @@ page 70104 "PLI Import Preview"
                     Caption = 'Gültig von';
                     ApplicationArea = All;
                     Editable = false;
+                    ToolTip = 'Startdatum aus dem JSON-Metadatenfeld "validFrom".';
                 }
                 field(ValidToField; ValidToVal)
                 {
                     Caption = 'Gültig bis';
                     ApplicationArea = All;
                     Editable = false;
+                    // #6 Explain 0D = unbefristet to the user
+                    ToolTip = 'Enddatum aus dem JSON-Metadatenfeld "validTo". Ist das Enddatum leer, gilt der Preis unbefristet und läuft nie automatisch ab.';
                 }
             }
 
@@ -77,6 +80,12 @@ page 70104 "PLI Import Preview"
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Mandant, in den die Preisliste importiert wird.';
+                }
+                field(InsertAsDraftField; InsertAsDraftVal)
+                {
+                    Caption = 'Als Entwurf importieren';
+                    ApplicationArea = All;
+                    ToolTip = 'Aktiviert: Neue Preislisten und -zeilen werden als Entwurf angelegt und müssen manuell freigegeben werden, bevor sie in Belegen wirken. Deaktiviert (Standard): Direkt aktiv — wirkt sofort im nächsten Verkaufsbeleg.';
                 }
                 field(WarningField; WarningTxt)
                 {
@@ -130,6 +139,7 @@ page 70104 "PLI Import Preview"
         ValidFromVal: Date;
         ValidToVal: Date;
         CompanyFilterVal: Text[30];
+        InsertAsDraftVal: Boolean;
         WarningTxt: Text;
         WarningStyle: Text;
         ImportConfirmed: Boolean;
@@ -137,22 +147,46 @@ page 70104 "PLI Import Preview"
     /// <summary>
     /// Must be called before RunModal() to populate the dialog fields.
     /// </summary>
-    procedure SetPreviewData(FileName: Text[250]; ImportType: Text[50]; LineCount: Integer; CompanyFilter: Text[30]; ValidFrom: Date; ValidTo: Date)
+    /// <param name="PriceListCode">Override code entered in the cockpit. Empty = auto-assign per customer.</param>
+    /// <param name="UniqueCustomerCount">Number of distinct customerNo values in the JSON prices array.
+    /// When more than 1 and PriceListCode is set, a multi-customer warning is shown.</param>
+    procedure SetPreviewData(FileName: Text[250]; ImportType: Text[50]; LineCount: Integer; CompanyFilter: Text[30]; ValidFrom: Date; ValidTo: Date; PriceListCode: Code[20]; UniqueCustomerCount: Integer)
+    var
+        WarningLines: List of [Text];
+        WarningLine: Text;
     begin
         FileNameVal := FileName;
         ImportTypeVal := ImportType;
         LineCountVal := LineCount;
         ValidFromVal := ValidFrom;
         ValidToVal := ValidTo;
+        InsertAsDraftVal := false; // default: direct active
+
         if CompanyFilter = '' then begin
             CompanyFilterVal := '(Alle Mandanten)';
-            WarningTxt := 'Achtung: Es ist kein Mandant ausgewählt. Der Import wird in ALLE aktiven Mandanten durchgeführt!';
-            WarningStyle := 'Attention';
-        end else begin
+            WarningLines.Add('Achtung: Kein Mandant ausgewaehlt. Import in ALLE aktiven Mandanten!');
+        end else
             CompanyFilterVal := CompanyFilter;
-            WarningTxt := '';
+
+        // #7 Warn if a single override code is used for multiple customers
+        if (PriceListCode <> '') and (UniqueCustomerCount > 1) then
+            WarningLines.Add(StrSubstNo(
+                'Hinweis: Preislistencode "%1" wird fuer %2 verschiedene Debitoren verwendet. Alle Zeilen landen in dieser einen Liste.',
+                PriceListCode, UniqueCustomerCount));
+
+        // #5 Best-price info always shown
+        WarningLines.Add('Info: BC verwendet immer den guenstigsten Preis (Best-Price-Prinzip). Ein importierter Preis kann durch eine andere guenstigere Preisliste uebersteuert werden.');
+
+        foreach WarningLine in WarningLines do
+            if WarningTxt = '' then
+                WarningTxt := WarningLine
+            else
+                WarningTxt := WarningTxt + ' | ' + WarningLine;
+
+        if WarningLines.Count > 1 then
+            WarningStyle := 'Attention'
+        else
             WarningStyle := 'None';
-        end;
     end;
 
     /// <summary>
@@ -162,5 +196,14 @@ page 70104 "PLI Import Preview"
     procedure IsImportConfirmed(): Boolean
     begin
         exit(ImportConfirmed);
+    end;
+
+    /// <summary>
+    /// Returns false = insert as Active (default), true = insert as Draft.
+    /// Must be checked after RunModal() returns.
+    /// </summary>
+    procedure IsInsertAsDraft(): Boolean
+    begin
+        exit(InsertAsDraftVal);
     end;
 }

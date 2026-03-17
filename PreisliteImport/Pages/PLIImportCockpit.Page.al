@@ -52,6 +52,29 @@ page 70100 "PLI Import Cockpit"
                     Editable = false;
                     StyleExpr = IsAllCompaniesStyle;
                 }
+                field(PriceListCodeField; PriceListCode)
+                {
+                    Caption = 'Preislistencode';
+                    ApplicationArea = All;
+                    ToolTip = 'Optional: Vorhandene Preisliste gezielt befuellen. Leer lassen = Nummernserie aus Deb. Einrichtung wird gezogen, oder neue Preisliste je Debitor wird angelegt.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        PriceListHeader: Record "Price List Header";
+                        PriceListHeaderList: Page "Sales Price Lists";
+                    begin
+                        PriceListHeader.SetRange("Price Type", PriceListHeader."Price Type"::Sale);
+                        PriceListHeaderList.SetTableView(PriceListHeader);
+                        PriceListHeaderList.LookupMode(true);
+                        if PriceListHeaderList.RunModal() = Action::LookupOK then begin
+                            PriceListHeaderList.GetRecord(PriceListHeader);
+                            PriceListCode := PriceListHeader.Code;
+                            Text := PriceListHeader.Code;
+                            exit(true);
+                        end;
+                        exit(false);
+                    end;
+                }
             }
 
             group(LastImportGroup)
@@ -135,10 +158,12 @@ page 70100 "PLI Import Cockpit"
         FileName: Text[250];
         AllCompaniesInfoTxt: Text;
         IsAllCompaniesStyle: Text;
+        PriceListCode: Code[20];
         LastImportDate: DateTime;
         LastImportStatus: Enum "PLI Import Status";
         LastImportLines: Integer;
         LastImportErrors: Integer;
+        UniqueCustomerCount: Integer;
 
     local procedure SelectAndImport()
     var
@@ -172,14 +197,16 @@ page 70100 "PLI Import Cockpit"
         JsonInStream.ReadText(JsonContent);
 
         // Parse metadata and show confirmation dialog
-        PLIPriceListImport.GetPreviewData(JsonContent, ImportType, ValidFrom, ValidTo, LineCount);
-        PLIImportPreview.SetPreviewData(FileName, ImportType, LineCount, CompanyFilter, ValidFrom, ValidTo);
+        PLIPriceListImport.GetPreviewData(JsonContent, ImportType, ValidFrom, ValidTo, LineCount, UniqueCustomerCount);
+        // #7 Pass PriceListCode + UniqueCustomerCount so preview can show multi-customer warning
+        PLIImportPreview.SetPreviewData(FileName, ImportType, LineCount, CompanyFilter, ValidFrom, ValidTo, PriceListCode, UniqueCustomerCount);
         PLIImportPreview.RunModal();
         if not PLIImportPreview.IsImportConfirmed() then
             exit;
 
+        // #4 Draft mode: user chooses in preview dialog; InsertAsActive = not Draft
         // Run actual import (TempBlob stream is re-created internally)
-        PLIPriceListImport.ImportFromBlob(TempBlob, FileName, CompanyFilter);
+        PLIPriceListImport.ImportFromBlob(TempBlob, FileName, CompanyFilter, PriceListCode, not PLIImportPreview.IsInsertAsDraft());
 
         LoadLastImportInfo();
         Message('Import abgeschlossen. Pruefen Sie den Import-Log fuer Details.');
