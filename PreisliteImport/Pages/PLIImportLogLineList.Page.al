@@ -38,9 +38,16 @@ page 70103 "PLI Import Log Line List"
     trigger OnAfterGetRecord()
     begin
         case Rec.Status of
-            Rec.Status::Imported, Rec.Status::Updated:
+            Rec.Status::Imported,
+            Rec.Status::InsertedNewLine:
                 StatusStyle := 'Favorable';
-            Rec.Status::Error:
+            Rec.Status::Updated:
+                StatusStyle := 'Favorable';
+            Rec.Status::InsertedConflictActiveOverlap,
+            Rec.Status::InsertedMinQtyVariant:
+                StatusStyle := 'Attention';
+            Rec.Status::Error,
+            Rec.Status::RejectedMissingEndDate:
                 StatusStyle := 'Unfavorable';
             Rec.Status::Skipped:
                 StatusStyle := 'Attention';

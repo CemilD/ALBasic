@@ -45,17 +45,26 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListHeader.ChangeCompany(CompanyName);
         PriceListLine.ChangeCompany(CompanyName);
 
-        // #3 Validate customer exists in target company before touching price lists
+        // ── GUARDRAIL 1: Ending Date is mandatory for overlap detection ──────────
+        // Without an end date we cannot guarantee that the new line does not
+        // silently shadow an existing active line forever.
+        if LogLine."Ending Date" = 0D then begin
+            LogLine."Error Message" :=
+                'Importzeile abgelehnt: Enddatum fehlt. Jede Importzeile muss ein Enddatum haben.';
+            exit("PLI Line Import Status"::RejectedMissingEndDate);
+        end;
+
+        // ── Debitor must exist in target company ─────────────────────────────────
         Customer.ChangeCompany(CompanyName);
         Customer.SetLoadFields("No.");
         if not Customer.Get(LogLine."Customer No.") then begin
             LogLine."Error Message" := StrSubstNo(
-                'Debitor "%1" in Mandant "%2" nicht gefunden. Preisliste wurde nicht aktualisiert.',
+                'Debitor "%1" in Mandant "%2" nicht gefunden.',
                 LogLine."Customer No.", CompanyName);
             exit("PLI Line Import Status"::Skipped);
         end;
 
-        // Honor explicit override code from import log (user-selected on cockpit)
+        // ── Resolve target price list header ─────────────────────────────────────
         if LogLine."Price List Code" <> '' then begin
             PriceListHeader.SetLoadFields(Code, "Source Type", "Source No.", Status);
             if not PriceListHeader.Get(LogLine."Price List Code") then begin
@@ -70,7 +79,6 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
                     LogLine."Price List Code", PriceListHeader."Source No.", LogLine."Customer No.");
                 exit("PLI Line Import Status"::Error);
             end;
-            // DRAFT POLICY: if the target list is Active, create a new Draft copy instead
             if PriceListHeader.Status = PriceListHeader.Status::Active then
                 PriceListCode := CreateDraftCopyCode(PriceListHeader, LogLine."Customer No.", LogLine."Currency Code")
             else
@@ -78,20 +86,96 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         end else
             PriceListCode := FindOrCreateDraftHeaderCode(LogLine."Customer No.", LogLine."Currency Code", PriceListHeader);
 
-        PriceListLine.SetLoadFields("Price List Code", "Asset No.", "Unit of Measure Code", "Minimum Quantity", "Starting Date", "Ending Date", "Unit Price");
+        // ── GUARDRAIL 2: Check for exact-key existing lines ───────────────────────
+        // Exact match = same PriceListCode + Article + UoM + MinQty + Currency + StartDate
+        // (all fields that together uniquely identify a price slot).
+        PriceListLine.SetLoadFields(
+            "Price List Code", "Asset No.", "Unit of Measure Code",
+            "Minimum Quantity", "Starting Date", "Ending Date", "Unit Price", Status);
         PriceListLine.SetRange("Price List Code", PriceListCode);
         PriceListLine.SetRange("Asset No.", LogLine."Item No.");
         PriceListLine.SetRange("Unit of Measure Code", LogLine."Unit of Measure Code");
+        PriceListLine.SetRange("Currency Code", LogLine."Currency Code");
         PriceListLine.SetRange("Minimum Quantity", LogLine."Minimum Quantity");
         PriceListLine.SetRange("Starting Date", LogLine."Starting Date");
 
         if PriceListLine.FindFirst() then begin
+            // ── GUARDRAIL 3: Never modify an active/overlapping line ──────────────
+            // An existing line is considered active/conflicting when:
+            //   a) Its own status is Active, OR
+            //   b) Its validity period overlaps with the new import period:
+            //        existingStart <= newEnd  AND  newStart <= existingEnd (or existingEnd is open)
+            if IsLineActiveOrOverlapping(PriceListLine, LogLine."Starting Date", LogLine."Ending Date") then begin
+                LogLine."Error Message" := StrSubstNo(
+                    'Aktive/ueberlappende Zeile [%1..%2] fuer Artikel %3, MinMgenge %4 gefunden. Neue Zeile wurde zusaetzlich angelegt (alte unveraendert).',
+                    PriceListLine."Starting Date", PriceListLine."Ending Date",
+                    LogLine."Item No.", LogLine."Minimum Quantity");
+                InsertNewPriceLine(PriceListLine, PriceListCode, LogLine);
+                exit("PLI Line Import Status"::InsertedConflictActiveOverlap);
+            end;
+
+            // Safe to update: same exact key, line is not active and does not overlap
             PriceListLine."Unit Price" := LogLine."Unit Price";
             PriceListLine."Ending Date" := LogLine."Ending Date";
             PriceListLine.Modify(true);
             exit("PLI Line Import Status"::Updated);
         end;
 
+        // ── GUARDRAIL 4: Check for same article but DIFFERENT MinQty (warn + insert) ──
+        // Purpose: detect accidental duplicates vs. intentional tiered pricing.
+        PriceListLine.SetRange("Minimum Quantity"); // clear the MinQty filter
+        if PriceListLine.FindSet() then
+            repeat
+                if IsLineActiveOrOverlapping(PriceListLine, LogLine."Starting Date", LogLine."Ending Date") then begin
+                    // Different MinQty but same article + overlapping period — log warning and insert
+                    LogLine."Error Message" := StrSubstNo(
+                        'Hinweis (MinMenge): Artikel %1 hat bereits eine Zeile mit MinMenge %2 im Zeitraum [%3..%4]. Neue Zeile mit MinMenge %5 wurde eingefuegt (Staffelpreis?).',
+                        LogLine."Item No.", PriceListLine."Minimum Quantity",
+                        PriceListLine."Starting Date", PriceListLine."Ending Date",
+                        LogLine."Minimum Quantity");
+                    InsertNewPriceLine(PriceListLine, PriceListCode, LogLine);
+                    exit("PLI Line Import Status"::InsertedMinQtyVariant);
+                end;
+            until PriceListLine.Next() = 0;
+
+        // ── No existing line found — simply insert ────────────────────────────────
+        InsertNewPriceLine(PriceListLine, PriceListCode, LogLine);
+        exit("PLI Line Import Status"::InsertedNewLine);
+    end;
+
+    /// <summary>
+    /// Returns true when the given PriceListLine is considered to be active
+    /// and/or has a validity period that overlaps with [NewStart..NewEnd].
+    ///
+    /// Overlap condition (standard interval intersection):
+    ///   existingStart &lt;= NewEnd  AND  NewStart &lt;= effectiveExistingEnd
+    /// where effectiveExistingEnd = MaxDate when existingEnd is 0D (open-ended).
+    /// </summary>
+    local procedure IsLineActiveOrOverlapping(var Line: Record "Price List Line"; NewStart: Date; NewEnd: Date): Boolean
+    var
+        EffectiveEnd: Date;
+    begin
+        // An open-ended existing line never expires — treat as MaxDate
+        if Line."Ending Date" = 0D then
+            EffectiveEnd := DMY2Date(31, 12, 9999)
+        else
+            EffectiveEnd := Line."Ending Date";
+
+        // Still active as of today (not yet expired)
+        if EffectiveEnd >= WorkDate() then begin
+            // Overlap: existing interval intersects with new import interval?
+            if (Line."Starting Date" <= NewEnd) and (NewStart <= EffectiveEnd) then
+                exit(true);
+        end;
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Inserts a brand-new Price List Line record for the given LogLine into PriceListCode.
+    /// All header-level fields (Source, Status=Draft) are set here.
+    /// </summary>
+    local procedure InsertNewPriceLine(var PriceListLine: Record "Price List Line"; PriceListCode: Code[20]; var LogLine: Record "PLI Import Log Line")
+    begin
         PriceListLine.Init();
         PriceListLine."Price List Code" := PriceListCode;
         PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
@@ -107,10 +191,9 @@ codeunit 70102 "PLI Sales PL Importer" implements "IPLIPriceListImporter"
         PriceListLine."Starting Date" := LogLine."Starting Date";
         PriceListLine."Ending Date" := LogLine."Ending Date";
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Price;
-        // DRAFT POLICY: lines are always Draft — activation is a separate step
+        // DRAFT POLICY: always Draft — activation is a separate step
         PriceListLine.Status := PriceListLine.Status::Draft;
         PriceListLine.Insert(true);
-        exit("PLI Line Import Status"::Imported);
     end;
 
     /// <summary>
